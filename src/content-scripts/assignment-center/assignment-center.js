@@ -1,29 +1,36 @@
 console.info("Modifying assignment center...");
 
+const viewIconNames = {
+  calendar: "calendar-ltr",
+  list: "text-bullet-list",
+};
+
 /**
- * @typedef {"list"|"calendar"} View
+ * @typedef {keyof typeof viewIconNames} View
  */
 const views = {
-  calendar: async () => views.getElem("calendar"),
-  list: async () => views.getElem("list"),
-
   /** @param {View} view */
   switchTo: async (view) => views.getElem(view).then((btn) => btn.click()),
 
-  /** @param {View} view The name of the icon in the input */
-  getElem: async (view) =>
-    waitForElem(`[aria-label='Assignment center view'] [icon='${view}'] input`),
+  /**
+   * @param {View} iconName The name of the icon in the input
+   * @returns {Promise<HTMLInputElement?>}
+   */
+  getElem: async (iconName) =>
+    /** @type {Promise<HTMLInputElement?>} */ (
+      waitForElem(
+        `[aria-label='Assignment center view'] [iconname='${viewIconNames[iconName]}'] input`,
+      )
+    ),
 
   currentView: async () => {
-    /** @type {HTMLInputElement} */
     const calendar = await views.getElem("calendar");
-    /** @type {HTMLInputElement} */
     const list = await views.getElem("list");
 
-    if (calendar.checked) return "calendar";
-    else if (list.checked) return "list";
+    if (calendar?.checked) return "calendar";
+    else if (list?.checked) return "list";
     else {
-      console.error("Unknown view!");
+      console.error("Unknown view!", { calendar, list });
       debugger;
       return null;
     }
@@ -34,7 +41,8 @@ const views = {
    * @param {(newView: View, e: Event) => any} fn
    */
   onChange: async (fn) => {
-    const allViews = ["calendar", "list"];
+    /** @type {keyof typeof viewIconNames} */
+    const allViews = Object.keys(viewIconNames);
     for (const view of allViews) {
       const elem = await views.getElem(view);
       elem.addEventListener("change", fn.bind(null, view));
