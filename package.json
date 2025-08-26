@@ -1,0 +1,15 @@
+{
+  "name": "orion",
+  "version": "0.6.1",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gavinmorrow/orion.git"
+  },
+  "author": "Gavin Morrow <gavinfmorrow@gmail.com>",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/gavinmorrow/orion/issues"
+  },
+  "homepage": "https://gavinmorrow.github.io/orion"
+}
