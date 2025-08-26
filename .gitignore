@@ -5,5 +5,5 @@ web-ext-artifacts/
 # macOS
 .DS_Store
 
-# node (for dev tooling)
+# npm dev deps
 node_modules/

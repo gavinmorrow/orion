@@ -11,5 +11,12 @@
   "bugs": {
     "url": "https://github.com/gavinmorrow/orion/issues"
   },
-  "homepage": "https://gavinmorrow.github.io/orion"
+  "homepage": "https://gavinmorrow.github.io/orion",
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  },
+  "prettier": {
+    "parser": "babel"
+  }
 }
