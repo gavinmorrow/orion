@@ -130,7 +130,8 @@ const Calendar = {
    * @param {Date} a
    */
   dateIsWeekday(a) {
-    const monday = 1, friday = 5;
+    const monday = 1,
+      friday = 5;
 
     // Returns 0-6, where 0 is Sunday.
     const day = a.getDay();
@@ -190,7 +191,9 @@ const Calendar = {
     date.setFullYear(year);
     return date;
   },
-  /** Date as mm/dd/yyyy */
+  /**
+   * Date as mm/dd/yyyy
+   * @param {Date} date */
   asBlackbaudDate(date) {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
@@ -219,8 +222,10 @@ const Calendar = {
     return `${hour12}:${String(min).padStart(2, "0")} ${amPm}`;
   },
 };
+export default Calendar;
 
-const _assert = (...os) => {
+/** @param {{ eq: [unknown, unknown] }[]} os */
+const __assert = (...os) => {
   for (const o of os) {
     if (o.eq != null) {
       const [a, b] = o.eq;
@@ -234,33 +239,33 @@ const _assert = (...os) => {
     }
   }
 };
-const _calendarUnitTests = [
+const __calendarUnitTests = [
   function oneDayForwardNoRollover() {
     const day = new Date(2024, 3, 22);
     const nextDay = Calendar.offsetFromDay(day, 1);
-    return _assert({ eq: [nextDay.getDate(), 23] });
+    return __assert({ eq: [nextDay.getDate(), 23] });
   },
   function oneDayBackNoRollover() {
     const day = new Date(2024, 3, 22);
     const nextDay = Calendar.offsetFromDay(day, -1);
-    return _assert({ eq: [nextDay.getDate(), 21] });
+    return __assert({ eq: [nextDay.getDate(), 21] });
   },
 
   function manyDayForwardNoRollover() {
     const day = new Date(2024, 3, 22);
     const nextDay = Calendar.offsetFromDay(day, 7);
-    return _assert({ eq: [nextDay.getDate(), 29] });
+    return __assert({ eq: [nextDay.getDate(), 29] });
   },
   function manyDayBackNoRollover() {
     const day = new Date(2024, 3, 22);
     const nextDay = Calendar.offsetFromDay(day, -7);
-    return _assert({ eq: [nextDay.getDate(), 15] });
+    return __assert({ eq: [nextDay.getDate(), 15] });
   },
 
   function handlesMonthRolloverForward() {
     const day = new Date(2024, 9, 3);
     const nextDay = Calendar.offsetFromDay(day, 30);
-    return _assert(
+    return __assert(
       { eq: [nextDay.getDate(), 2] },
       { eq: [nextDay.getMonth(), 10] },
     );
@@ -268,7 +273,7 @@ const _calendarUnitTests = [
   function handlesMonthRolloverBack() {
     const day = new Date(2024, 9, 3);
     const nextDay = Calendar.offsetFromDay(day, -7);
-    return _assert(
+    return __assert(
       { eq: [nextDay.getDate(), 26] },
       { eq: [nextDay.getMonth(), 8] },
     );
@@ -277,7 +282,7 @@ const _calendarUnitTests = [
   function handlesYearRolloverForward() {
     const day = new Date(2024, 9, 3);
     const nextDay = Calendar.offsetFromDay(day, 91);
-    return _assert(
+    return __assert(
       { eq: [nextDay.getDate(), 2] },
       { eq: [nextDay.getMonth(), 0] },
     );
@@ -285,7 +290,7 @@ const _calendarUnitTests = [
   function handlesYearRolloverBack() {
     const day = new Date(2024, 1, 18);
     const nextDay = Calendar.offsetFromDay(day, -55);
-    return _assert(
+    return __assert(
       { eq: [nextDay.getDate(), 25] },
       { eq: [nextDay.getMonth(), 11] },
     );
@@ -294,12 +299,12 @@ const _calendarUnitTests = [
   function handlesLeapYear() {
     const day = new Date(2024, 1, 28);
     const nextDay = Calendar.offsetFromDay(day, 1);
-    return _assert({ eq: [nextDay.getDate(), 29] });
+    return __assert({ eq: [nextDay.getDate(), 29] });
   },
   function handlesNoLeapYear() {
     const day = new Date(2023, 1, 28);
     const nextDay = Calendar.offsetFromDay(day, 1);
-    return _assert(
+    return __assert(
       { eq: [nextDay.getDate(), 1] },
       { eq: [nextDay.getMonth(), 2] },
     );
@@ -314,73 +319,68 @@ const _calendarUnitTests = [
       const nextWeekday = Calendar.nextWeekday(date);
       return nextWeekday.getDate();
     });
-    const correctDateMap = [
-      4,
-      5,
-      6,
-      7,
-      10,
-      10,
-      10,
-      11,
-    ];
+    const correctDateMap = [4, 5, 6, 7, 10, 10, 10, 11];
 
-    const assertions = dates.map((date, i) => (
-      { eq: [date, correctDateMap[i]] }
-    ));
-    return _assert(...assertions, { eq: [dates.length, correctDateMap.length] });
+    const assertions = dates.map(
+      /** @returns {{ eq: [number, number]}} */ (date, i) => ({
+        eq: [date, correctDateMap[i]],
+      }),
+    );
+    return __assert(...assertions, {
+      eq: [dates.length, correctDateMap.length],
+    });
   },
 
   function asInputValue() {
     const date = new Date(2009, 3, 22);
     const res = Calendar.asInputValue(date);
-    return _assert({ eq: [res, "2009-04-22"] });
+    return __assert({ eq: [res, "2009-04-22"] });
   },
   function asInputValueSmallYear() {
     const date = new Date(42, 11, 7);
     date.setFullYear(42);
     const res = Calendar.asInputValue(date);
-    return _assert({ eq: [res, "0042-12-07"] });
+    return __assert({ eq: [res, "0042-12-07"] });
   },
   function fromInputValue() {
     const res = Calendar.fromInputValue("2009-04-22");
     const expected = new Date(2009, 3, 22);
-    return _assert({ eq: [res.getTime(), expected.getTime()] });
+    return __assert({ eq: [res.getTime(), expected.getTime()] });
   },
   function fromInputValueSmallYear() {
     const res = Calendar.fromInputValue("9-10-3");
     const expected = new Date(9, 9, 3);
     expected.setFullYear(9);
-    return _assert({ eq: [res.getTime(), expected.getTime()] });
+    return __assert({ eq: [res.getTime(), expected.getTime()] });
   },
   function roundtripInputValue() {
     const date = new Date(2009, 3, 22);
     const res = Calendar.fromInputValue(Calendar.asInputValue(date));
-    return _assert({ eq: [res.getTime(), date.getTime()] });
+    return __assert({ eq: [res.getTime(), date.getTime()] });
   },
 
   function to12HourTimeMorning() {
     const res = Calendar.to12HourTime(9);
-    return _assert({ eq: [res.join(" "), "9 AM"] });
+    return __assert({ eq: [res.join(" "), "9 AM"] });
   },
   function to12HourTimeAfternoon() {
     const res = Calendar.to12HourTime(13);
-    return _assert({ eq: [res.join(" "), "1 PM"] });
+    return __assert({ eq: [res.join(" "), "1 PM"] });
   },
   function to12HourTimeMidnight() {
     const res = Calendar.to12HourTime(0);
-    return _assert({ eq: [res.join(" "), "12 AM"] });
+    return __assert({ eq: [res.join(" "), "12 AM"] });
   },
   function to12HourTimeNoon() {
     const res = Calendar.to12HourTime(12);
-    return _assert({ eq: [res.join(" "), "12 PM"] });
+    return __assert({ eq: [res.join(" "), "12 PM"] });
   },
 ];
-function _calendarUnitTestsRunAll() {
-  for (const test of _calendarUnitTests) {
+function __calendarUnitTestsRunAll() {
+  for (const test of __calendarUnitTests) {
     const res = test();
     if (res == false) console.error("Test failed!", test.toString());
   }
   console.info("Unit tests finished.");
 }
-_calendarUnitTestsRunAll();
+__calendarUnitTestsRunAll();

@@ -1,6 +1,10 @@
 /// FIXES: Logging in to hunter takes forever, and it also logs you out very
 /// often. It also takes a long time to log in.
 
+import { assertIsClass } from "/src/util/assertIsClass.js";
+
+import { featureFlag, promiseError, waitFor, waitForElem } from "./common.js";
+
 console.log("Logging in automatically...");
 
 const alreadyLoggedIn = async () => waitForElem("#site-logo");
@@ -11,8 +15,11 @@ const hunterLogin = featureFlag(
     console.log("Trying to login w/ Hunter...");
 
     const nextBtnSelector = "input[type='submit']#nextBtn";
-    const usernameEntered = () =>
-      document.getElementById("Username")?.value != "";
+    const usernameEntered = () => {
+      const username = document.getElementById("Username");
+      if (username != null) assertIsClass(username, HTMLInputElement);
+      return username?.value.includes("@hunterschools.org");
+    };
 
     const nextBtn = await waitForElem(nextBtnSelector);
     if (nextBtn == null) return;
@@ -83,6 +90,7 @@ const googlePassword = featureFlag(
 
     const nextBtn = await waitFor(passwordNextBtn);
     if (nextBtn == null) return;
+    assertIsClass(nextBtn, HTMLButtonElement);
     nextBtn.click();
   }),
 );

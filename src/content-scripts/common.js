@@ -1,4 +1,4 @@
-const VERSION = "0.6.1";
+export const VERSION = "0.6.1";
 
 // Check for old version already installed.
 let meta = document.getElementById("orion-version");
@@ -24,7 +24,7 @@ const DEFAULT_INTERVAL = 16;
  * @param {T} a
  * @returns {T}
  */
-const dbg = (a) => {
+export const dbg = (a) => {
   console.log(a);
   return a;
 };
@@ -32,12 +32,13 @@ const dbg = (a) => {
 /**
  * [Memoize](https://en.wikipedia.org/wiki/Memoization) a function.
  * @template T
- * @param {() => Promise<T>|() => T} fn
+ * @param {(() => Promise<T>)|(() => T)} fn
  * @returns {[() => Promise<T>, (c: T) => void]}
  */
-const memo = (fn) => {
+export const memo = (fn) => {
+  /** @type {T|Promise<T>|null} */
   let cache = null;
-  const updateCache = (c) => (cache = c);
+  const updateCache = (/** @type {T} */ c) => (cache = c);
   return [
     async () => {
       // `await` only when *reading* the cache otherwise there could be a race
@@ -52,53 +53,65 @@ const memo = (fn) => {
 /**
  * Waits for a function to return a truthy value.
  * @template T The type of the value to wait for.
+ * @template {number|null} Timeout
  * @param {() => T} fn A function that returns the value to wait for. If the value is truthy, the promise resolves.
- * @param {number|undefined} timeout The amount to wait before failing (in ms). If undefined, will wait indefinitely. Defaults to DEFAULT_TIMEOUT.
+ * @param {Timeout} timeout The amount to wait before failing (in ms). If undefined, will wait indefinitely. Defaults to DEFAULT_TIMEOUT.
  * @param {number} interval The interval to check for the element (in ms). Defaults to DEFAULT_INTERVAL.
- * @returns {Promise<T|null>} Resolves with the value returned by the function, or resolves with null if the timeout is reached.
+ * @returns {Timeout extends null ? Promise<T> : Promise<T|null>} Resolves with the value returned by the function, or resolves with null if the timeout is reached.
  */
-const waitFor = (fn, timeout = DEFAULT_TIMEOUT, interval = DEFAULT_INTERVAL) =>
-  new Promise((resolve, reject) => {
-    // set timeout and interval
-    let timeoutId =
-      timeout != undefined ? setTimeout(() => resolve(null), timeout) : null;
-    let intervalId = setInterval(run, interval);
+export const waitFor = (
+  fn,
+  timeout = /** @type {Timeout} */ (DEFAULT_TIMEOUT),
+  interval = DEFAULT_INTERVAL,
+) =>
+  /** @type {Timeout extends null ? Promise<T> : Promise<T|null>} */ (
+    new Promise((resolve, _reject) => {
+      // set timeout and interval
+      let timeoutId =
+        timeout !== null ? setTimeout(() => resolve(null), timeout) : undefined;
+      let intervalId = setInterval(run, interval);
 
-    // run immediately to minimize delay if it's already ready
-    run();
+      // run immediately to minimize delay if it's already ready
+      run();
 
-    // use `function` keyword for hoisting
-    function run() {
-      const result = fn();
-      if (result) {
-        clearInterval(intervalId);
-        clearTimeout(timeoutId);
-        resolve(result);
+      // use `function` keyword for hoisting
+      function run() {
+        const result = fn();
+        if (result) {
+          clearInterval(intervalId);
+          clearTimeout(timeoutId);
+          resolve(result);
+        }
       }
-    }
-  });
+    })
+  );
 
 /**
  * Waits for an element to appear on the page.
+ * @template {number|null} Timeout
  * @param {String} selector The query selector to wait for.
- * @param {number|undefined} timeout The amount to wait before failing (in ms). If undefined, will wait indefinitely. Defaults to DEFAULT_TIMEOUT.
+ * @param {Timeout} timeout The amount to wait before failing (in ms). If undefined, will wait indefinitely. Defaults to DEFAULT_TIMEOUT.
  * @param {number} interval The interval to check for the element (in ms). Defaults to DEFAULT_INTERVAL.
- * @returns {Promise<HTMLElement|null>} A promise that resolves to the element if it is found, or resolves with null if the timeout is reached.
+ * @returns {Timeout extends null ? Promise<HTMLElement> : Promise<HTMLElement|null>} A promise that resolves to the element if it is found, or resolves with null if the timeout is reached.
  */
-const waitForElem = (
+export const waitForElem = (
   selector,
-  timeout = DEFAULT_TIMEOUT,
+  timeout = /** @type {Timeout} */ (DEFAULT_TIMEOUT),
   interval = DEFAULT_INTERVAL,
-) => waitFor(() => document.querySelector(selector), timeout, interval);
+) =>
+  /** @type {Timeout extends null ? Promise<HTMLElement> : Promise<HTMLElement|null>} */ (
+    waitFor(() => document.querySelector(selector), timeout, interval)
+  );
 
 /**
  * Waits for several elements to appear on the page.
+ * @template {number|null} Timeout
  * @param {String} selector The query selector to wait for.
- * @param {number|undefined} timeout The amount to wait before failing (in ms). If undefined, will wait indefinitely. Defaults to DEFAULT_TIMEOUT.
+ * @param {number|null} timeout The amount to wait before failing (in ms). If undefined, will wait indefinitely. Defaults to DEFAULT_TIMEOUT.
  * @param {number} interval The interval to check for the element (in ms). Defaults to DEFAULT_INTERVAL.
- * @returns {Promise<NodeListOf<Element>|null>} A promise that resolves to the element if it is found, or resolves with null if the timeout is reached.
+ * @returns {Promise<Timeout extends null ? NodeListOf<Element> : NodeListOf<Element>|null>} A promise that resolves to the element if it is found, or resolves with null if the timeout is reached.
  */
-const waitForElems = async (
+export const waitForElems = async (
   selector,
   timeout = DEFAULT_TIMEOUT,
   interval = DEFAULT_INTERVAL,
@@ -108,7 +121,11 @@ const waitForElems = async (
     timeout,
     interval,
   );
-  return document.querySelectorAll(selector);
+
+  const elems = document.querySelectorAll(selector);
+  return /** @type {Timeout extends null ? NodeListOf<Element> : NodeListOf<Element>|null} */ (
+    elems.length > 0 ? elems : null
+  );
 };
 
 /**
@@ -135,10 +152,11 @@ const waitForElems = async (
  *
  * @property {Object} assignmentCenter.customUi
  * @property {boolean} assignmentCenter.customUi.enabled
- * @property {{ [String]: String }} assignmentCenter.customUi.statusColors
+ * @property {{ [k: string]: String }} assignmentCenter.customUi.statusColors
  * @property {number} assignmentCenter.customUi.saturation
  *
  * @property {Object} assignmentCenter.calendar
+ * @property {boolean} assignmentCenter.calendar.enabled
  * @property {boolean} assignmentCenter.calendar.fixCalendarHeaderOverflow
  *
  * @property {Object} assignmentCenter.list
@@ -155,7 +173,7 @@ const waitForElems = async (
  */
 
 /** Get user settings. */
-const [settings, updateSettingsCache] = memo(
+export const [settings, updateSettingsCache] = memo(
   /** @returns {Promise<Settings>} */
   async () =>
     browser.runtime.sendMessage({
@@ -164,22 +182,26 @@ const [settings, updateSettingsCache] = memo(
 );
 
 /** Do a partial update of settings (only send what needs to be changed). */
-const updateSettings = async (partial) =>
-  browser.runtime.sendMessage({ type: "settings.update", data: partial });
+export const updateSettings = async (
+  /** @type {Partial<Settings>} */ partial,
+) => browser.runtime.sendMessage({ type: "settings.update", data: partial });
 
 // FIXME: actually make the cache work.
 // This is a temporary workaround to get the better performance of the API
 // fetch version without blocking on the cache.
-const getAssignmentsCache = async () => [];
+export const getAssignmentsCache = async () =>
+  /** @type {import("./assignment-center/assignment.js").Assignment[]} */ ([]);
 // const getAssignmentsCache = async () => (await browser.runtime.sendMessage({
 //   type: "assignmentsCache.get",
 // })) ?? [];
-const setAssignmentsCache = async (newAssignments) =>
+export const setAssignmentsCache = async (
+  /** @type {import("./assignment-center/assignment.js").Assignment[]} */ newAssignments,
+) =>
   browser.runtime.sendMessage({
     type: "assignmentsCache.set",
     data: newAssignments,
   });
-const clearAssignmentsCache = async () =>
+export const clearAssignmentsCache = async () =>
   browser.runtime.sendMessage({
     type: "assignmentsCache.clear",
   });
@@ -189,9 +211,9 @@ const clearAssignmentsCache = async () =>
  * @template T The return value of `fn()`
  * @param {(settings: Settings) => Promise<boolean>|boolean} predicate Whether or not to run `fn()`. Passed in current settings.
  * @param {() => T} fn The function to run.
- * @returns {() => Promise<T?>} The return value of `fn()`, or void if `fn()` doesn't get called.
+ * @returns {() => Promise<T|undefined>} The return value of `fn()`, or void if `fn()` doesn't get called.
  */
-const featureFlag = (predicate, fn) => async () => {
+export const featureFlag = (predicate, fn) => async () => {
   if (await predicate(await settings())) return fn();
   else
     console.debug("Predicate falsy, not calling fn().", predicate.toString());
@@ -201,9 +223,9 @@ const featureFlag = (predicate, fn) => async () => {
  * Wrap a function, to ensure all errors are logged.
  * @param {() => Promise<any>} fn The function to wrap.
  * @param {(err: Error) => void} handler The function to call when the error is caught.
- * @returns {() => Promise<Promise<any>} A function that will log any thrown errors in the provided function. This will rethrow errors.
+ * @returns {() => Promise<Promise<any>>} A function that will log any thrown errors in the provided function. This will rethrow errors.
  */
-const promiseError =
+export const promiseError =
   (fn, handler = reportError ?? alert) =>
   async () => {
     // Don't use Promise methods to avoid `InternalError: Promise rejection
@@ -212,8 +234,10 @@ const promiseError =
     try {
       return await fn();
     } catch (err) {
-      console.error(`Error in promise: ${err}\nstack: ${err.stack}`);
-      handler(err);
+      if (err instanceof Error) {
+        console.error(`Error in promise: ${err}\nstack: ${err.stack}`);
+        handler(err);
+      }
       throw err;
     }
   };
@@ -225,12 +249,12 @@ const promiseError =
  * @param {boolean} predicate
  */
 // Not really a predicate, but imo it's close enough.
-const conditionalClass = (elem, className, predicate) => {
+export const conditionalClass = (elem, className, predicate) => {
   if (predicate) elem.classList.add(className);
   else elem.classList.remove(className);
 };
 
-const buttonStylesInner = `
+export const buttonStylesInner = `
     --color-text: #eee;
     --color-border: #333;
     --color-bg-root: #111;

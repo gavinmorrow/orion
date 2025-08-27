@@ -1,3 +1,23 @@
+import api from "/src/util/api.js";
+import { assertIsClass } from "/src/util/assertIsClass.js";
+import { resizeHeaderSpacer } from "/src/util/headerHeight.js";
+import { NonNull } from "/src/util/NonNull.js";
+import { reportError } from "/src/util/reportError.js";
+
+import { BannerAlert } from "../banner-alert.js";
+import {
+  featureFlag,
+  getAssignmentsCache,
+  promiseError,
+  settings,
+  waitFor,
+  waitForElem,
+} from "../common.js";
+
+import AssignmentCenter from "./AssignmentCenter.js";
+import { createOrionMain } from "./create-orion-main.js";
+import ToolbarMenu from "./ToolbarMenu.js";
+
 console.info("Modifying assignment center...");
 
 const viewIconNames = {
@@ -14,14 +34,15 @@ const views = {
 
   /**
    * @param {View} iconName The name of the icon in the input
-   * @returns {Promise<HTMLInputElement?>}
+   * @returns {Promise<HTMLInputElement>}
    */
-  getElem: async (iconName) =>
-    /** @type {Promise<HTMLInputElement?>} */ (
-      waitForElem(
-        `[aria-label='Assignment center view'] [iconname='${viewIconNames[iconName]}'] input`,
-      )
-    ),
+  getElem: async (iconName) => {
+    const elem = await waitForElem(
+      `[aria-label='Assignment center view'] [iconname='${viewIconNames[iconName]}'] input`,
+    );
+    assertIsClass(elem, HTMLInputElement);
+    return elem;
+  },
 
   currentView: async () => {
     const calendar = await views.getElem("calendar");
@@ -31,7 +52,6 @@ const views = {
     else if (list?.checked) return "list";
     else {
       console.error("Unknown view!", { calendar, list });
-      debugger;
       return null;
     }
   },
@@ -41,8 +61,9 @@ const views = {
    * @param {(newView: View, e: Event) => any} fn
    */
   onChange: async (fn) => {
-    /** @type {keyof typeof viewIconNames} */
-    const allViews = Object.keys(viewIconNames);
+    const allViews = /** @type {(keyof typeof viewIconNames)[]} */ (
+      Object.keys(viewIconNames)
+    );
     for (const view of allViews) {
       const elem = await views.getElem(view);
       elem.addEventListener("change", fn.bind(null, view));
@@ -91,25 +112,11 @@ const hideLowerNavbar = featureFlag(
   },
 );
 
-const statusColorFor = async (status) => {
-  const {
-    assignmentCenter: { statusColors },
-  } = await settings();
-  switch (status) {
-    case "To do":
-      return statusColors.todo;
-    case "In progress":
-      return statusColors.inProgress;
-    case "Completed":
-      return statusColors.completed;
-  }
-};
-
 const createCustomUi = async () => {
   // switch to list view, so scraping is possible
   views.switchTo("list");
 
-  const oldElem = await waitForElem("app-student-assignment-center");
+  const oldElem = NonNull(await waitForElem("app-student-assignment-center"));
 
   try {
     const wrapper = await createOrionMain(oldElem);
@@ -133,7 +140,8 @@ const createCustomUi = async () => {
           .then(api.parseAssignments);
         assignmentCenter.meshAssignmentsArray(assignments);
       } catch (err) {
-        reportErr(err);
+        assertIsClass(err, Error);
+        reportError(err);
       }
     };
     if (navigator.onLine) await updateAssignments();
@@ -155,6 +163,7 @@ const createCustomUi = async () => {
   } catch (err) {
     console.error(`There was an error creating the custom UI: ${err}`);
     console.error(err);
+    assertIsClass(err, Error);
     reportError(err);
   }
 };
@@ -195,6 +204,7 @@ const modifyFilters = featureFlag(
   },
 );
 
+/** @param {View} view */
 const modifyView = async (view) => {
   switch (view) {
     case "calendar":
@@ -203,8 +213,6 @@ const modifyView = async (view) => {
     case "list":
       await modifyListView();
       break;
-    default:
-      throw new Error(`Unknown view: ${view}`);
   }
 };
 
@@ -225,7 +233,7 @@ promiseError(
         await modifyFilters();
 
         views.onChange(modifyView);
-        await modifyView(await views.currentView());
+        await modifyView(NonNull(await views.currentView()));
       }
     },
   ),

@@ -1,3 +1,19 @@
+import api from "/src/util/api.js";
+import BlackbaudDate from "/src/util/BlackbaudDate.js";
+import { NonNull } from "/src/util/NonNull.js";
+import { sortForArray } from "/src/util/sort.js";
+
+import { getStudentUserId } from "../student-user-id.js";
+
+import { scrapeClassColors } from "./scrape-colors.js";
+
+/** @import {
+      BlackbaudAssignmentPreview,
+      BlackbaudAssignment,
+      BlackbaudDownloadItem,
+      BlackbaudLinkItem,
+    } from "../../util/api.js" */
+
 /**
  * @typedef {String} Color Either a CSS color in `rgb(<r>,<g>,<b>)` format, or the empty string `""`.
  * @typedef {String} Link
@@ -8,16 +24,16 @@
 /**
  * @typedef {Object} Assignment
  * @property {Number} id
- * @property {Color} color
+ * @property {Color?} color
  * @property {String} title
- * @property {Link} link
+ * @property {Link?} link
  * @property {String?} description an innerHTML string.
  * @property {Status} status
  * @property {Date} dueDate
  * @property {Date} assignedDate
  * @property {Number?} maxPoints
  * @property {boolean} isExtraCredit
- * @property {{ name: String, link: Link }?} class
+ * @property {{ id?: number, name: String, link?: Link }} class
  * @property {String} type
  * @property {boolean} isTask
  * @property {SubmissionMethod?} submissionMethod
@@ -34,42 +50,55 @@
 const Assignment = {
   /**
    * Parse an assignment from its BB API representation.
-   * @param {BlackbaudAssignmentPreview} blackbaudRepr
-   * @returns {Assignment}
+   * @template {BlackbaudAssignmentPreview?} T
+   * @param {T} blackbaudRepr
+   * @returns {T extends null ? null : Assignment}
    */
   parse(blackbaudRepr) {
-    if (blackbaudRepr == null) return null;
+    if (blackbaudRepr == null) return /** @type {any} */ (null);
 
-    return {
-      // I'm not sure when the AssignmentId is used, but I'm also not sure if the AssignmentIndexId always exists.
-      id: blackbaudRepr.AssignmentIndexId ?? blackbaudRepr.AssignmentId,
-      // color: api.getClassColors()[blackbaudRepr.SectionId],
-      title: blackbaudRepr.ShortDescription,
-      link: blackbaudRepr.AssignmentIndexId != null ? `https://hunterschools.myschoolapp.com/lms-assignment/assignment/assignment-student-view/${blackbaudRepr.AssignmentIndexId}` : ``,
-      description: null,
-      status: Assignment.getStatusText(blackbaudRepr),
-      dueDate: BlackbaudDate.parse(blackbaudRepr.DateDue),
-      assignedDate: BlackbaudDate.parse(blackbaudRepr.DateAssigned),
-      maxPoints: blackbaudRepr.MaxPoints,
-      isExtraCredit: blackbaudRepr.ExtraCredit,
-      class: { id: blackbaudRepr.SectionId, name: blackbaudRepr.GroupName },
-      type: blackbaudRepr.AssignmentType,
-      // tasks are parsed elsewhere
-      isTask: false,
-      submissionMethod: null,
-      attachments: [],
-    };
+    return /** @type {T extends null ? null : Assignment} */ (
+      /** @type {Assignment} */ ({
+        // I'm not sure when the AssignmentId is used, but I'm also not sure if the AssignmentIndexId always exists.
+        id: blackbaudRepr.AssignmentIndexId ?? blackbaudRepr.AssignmentId,
+        // Color will be added later
+        color: null,
+        // color: api.getClassColors()[blackbaudRepr.SectionId],
+        title: blackbaudRepr.ShortDescription,
+        link:
+          blackbaudRepr.AssignmentIndexId != null
+            ? `https://hunterschools.myschoolapp.com/lms-assignment/assignment/assignment-student-view/${blackbaudRepr.AssignmentIndexId}`
+            : ``,
+        description: null,
+        status: Assignment.getStatusText(blackbaudRepr),
+        dueDate: BlackbaudDate.parse(blackbaudRepr.DateDue),
+        assignedDate: BlackbaudDate.parse(blackbaudRepr.DateAssigned),
+        maxPoints: blackbaudRepr.MaxPoints,
+        isExtraCredit: blackbaudRepr.ExtraCredit,
+        class: { id: blackbaudRepr.SectionId, name: blackbaudRepr.GroupName },
+        type: blackbaudRepr.AssignmentType,
+        // tasks are parsed elsewhere
+        isTask: false,
+        submissionMethod: null,
+        attachments: [],
+      })
+    );
   },
 
   getStatusText(/** @type {BlackbaudAssignmentPreview} */ blackbaudRepr) {
     switch (blackbaudRepr.AssignmentStatusType) {
       // These are all just best guesses. They could totally all be wrong.
-      case -1: return "To do";
-      case 0: return "In progress";
-      case 1: return "Completed";
+      case -1:
+        return "To do";
+      case 0:
+        return "In progress";
+      case 1:
+        return "Completed";
       // FIXME: could also be missing.
-      case 2: return "Overdue";
-      case 4: return "Graded";
+      case 2:
+        return "Overdue";
+      case 4:
+        return "Graded";
       default:
         console.error(
           "Unkonwn status",
@@ -82,6 +111,7 @@ const Assignment = {
   },
 
   // A seperate function so that `parse` can be non-async.
+  /** @param {Assignment} a @returns {Promise<Assignment & { color: Color }>} */
   async addColor(a) {
     try {
       const apiColors = await api.getClassColors();
@@ -94,7 +124,9 @@ const Assignment = {
 
       if (color == undefined) {
         // Don't throw error because it's not serious enough to alert user.
-        console.error(`Color for class ${a.class.id} (${a.class.name}) not found.`);
+        console.error(
+          `Color for class ${a.class.id} (${a.class.name}) not found.`,
+        );
         color = "#111";
       }
 
@@ -109,7 +141,7 @@ const Assignment = {
    * Sort two assignments by status (ascending) and then by type (descending).
    * @param {Assignment} a
    * @param {Assignment} b
-   * @returns {-1|0|1}
+   * @returns {number}
    */
   sort(a, b) {
     // If statuses are equal, it will be 0 and || will select the other branch
@@ -129,7 +161,7 @@ const Assignment = {
    * Missing < Overdue < To do < In progress < Completed < Graded
    * @param {Status} a
    * @param {Status} b
-   * @returns {-1|0|1}
+   * @returns {number}
    */
   sortStatuses(a, b) {
     // TODO: treat "To do" and "In progress" as equal?
@@ -149,12 +181,13 @@ const Assignment = {
    * everything else is equal.
    * @param {String} a
    * @param {String} b
-   * @returns {-1|0|1}
+   * @returns {number}
    */
   sortTypes(a, b) {
+    const aIsMajor = Assignment.typeIsMajor(a) ? 1 : 0;
+    const bIsMajor = Assignment.typeIsMajor(b) ? 1 : 0;
     // Sort in descending order
-    // `true` is coerced to `1` and `false` is coerced to `0`
-    return Assignment.typeIsMajor(b) - Assignment.typeIsMajor(a);
+    return bIsMajor - aIsMajor;
   },
 
   /** @param {Assignment} assignment */
@@ -166,12 +199,12 @@ const Assignment = {
       return undefined;
     }
 
-    const studentUserId = await getStudentUserId();
+    const studentUserId = NonNull(await getStudentUserId());
     return api.fetchAssignment(assignment.id, studentUserId);
   },
 
   /**
-   * @param {BlackbaudAssignment} blackbaudRepr
+   * @param {BlackbaudAssignment | undefined} blackbaudRepr
    * @returns A list of properties to add to the assignment.
    */
   async parseBlackbaudRepr(blackbaudRepr) {
@@ -185,17 +218,22 @@ const Assignment = {
 
   /**
    * Parse into the `assignment.attachments`.
-   * @param {BlackbaudAssignment} blackbaudRepr
-   * @returns {AssignmentAttachment[]}
+   * @template {BlackbaudAssignment | undefined} T
+   * @param {T} blackbaudRepr
+   * @returns {T extends undefined ? undefined : AssignmentAttachment[]}
    */
   parseBlackbaudAttachments(blackbaudRepr) {
-    if (blackbaudRepr == null) return;
+    if (blackbaudRepr == undefined) return /** @type {any} */ (undefined);
 
     const downloadItems = blackbaudRepr.DownloadItems.map(
       Assignment.parseBlackbaudDownloadItem,
     );
-    const linkItems = blackbaudRepr.LinkItems.map(Assignment.parseBlackbaudLinkItem);
-    return downloadItems.concat(linkItems);
+    const linkItems = blackbaudRepr.LinkItems.map(
+      Assignment.parseBlackbaudLinkItem,
+    );
+    return /** @type {T extends undefined ? undefined : AssignmentAttachment[]} */ (
+      downloadItems.concat(linkItems)
+    );
   },
 
   /** @returns {AssignmentAttachment} */
@@ -251,3 +289,5 @@ const Assignment = {
     return a.submissionMethod != null;
   },
 };
+
+export default Assignment;

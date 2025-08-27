@@ -1,3 +1,14 @@
+import AssignmentUtil from "../content-scripts/assignment-center/assignment.js";
+import Task from "../content-scripts/assignment-center/Task.js";
+import { memo, setAssignmentsCache } from "../content-scripts/common.js";
+import { getStudentUserId } from "../content-scripts/student-user-id.js";
+
+import { assertIsClass } from "./assertIsClass.js";
+import BlackbaudDate from "./BlackbaudDate.js";
+
+/** @import { Assignment, Status } from "../content-scripts/assignment-center/assignment.js" */
+/** @import { BlackbaudTask } from "../content-scripts/assignment-center/TaskEditor.js" */
+
 /**
  * @typedef {Object} BlackbaudAssignmentPreview
  * @property {number|0} AssignmentId The ID if it is an assignment. You probably want the AssignmentIndexId. Idk when this is used.
@@ -7,13 +18,15 @@
  * @property {string} GroupName	The name of the class.
  * @property {number} SectionId The ID of the class.
  * @property {string} AssignmentType eg "Homework (Minor)"
- * @property {string} DateAssigned
- * @property {string} DateDue
+ * @property {string} DateAssigned (or might be AssignedDate?)
+ * @property {string} DateDue (or might be DueDate?)
+ * @property {string} AssignedDate (or might be DateAssigned?)
+ * @property {string} DueDate (or might be DateDue?)
  * @property {-1|0|1|2|4} AssignmentStatusType As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
+ * @property {-1|0|1|2|4} TaskStatus (maybe make optional?) As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
  * @property {number} MaxPoints
  * @property {boolean} ExtraCredit
  */
-
 /**
  * @typedef {Object} BlackbaudAssignment
  * @property {String} LongDescription
@@ -52,7 +65,7 @@
 const api = {
   /**
    * Fetch an assignment from the Blackbaud API.
-   * @param {string} assignmentIndexId Can be found in the link of an assignment.
+   * @param {number} assignmentIndexId Can be found in the link of an assignment.
    * @param {string} studentUserId Can be found in the user's "Profile" link.
    * @returns {Promise<BlackbaudAssignment>} Direct response from a Blackbaud API.
    */
@@ -65,14 +78,21 @@ const api = {
     ).then((r) => r.json());
   },
 
+  /** @type {{ [key in Status]: number }} */
   statusNumMap: {
     Missing: 2,
     Overdue: 2,
     "To do": -1,
+    // FIXME: figure out what is going on w/ in progress
     "In progress": 0, // just mark it same as todo
     Completed: 1,
     Graded: 1,
   },
+
+  /**
+   * @param {number} assignmentIndexId
+   * @param {Status} status
+   */
   async updateAssignmentStatus(assignmentIndexId, status) {
     const assignmentStatus = api.statusNumMap[status];
     console.log(
@@ -97,6 +117,7 @@ const api = {
     );
   },
 
+  /** @param {any} task */
   nullifyIfZeroTaskSectionId(task) {
     return {
       ...task,
@@ -104,6 +125,7 @@ const api = {
         Number(task.SectionId ?? 0) === 0 ? null : String(task.SectionId),
     };
   },
+  /** @param {Assignment} task */
   async updateTaskStatus(task) {
     const statusNum = api.statusNumMap[task.status];
     console.log(`Setting status to ${statusNum} for task ${task.id}`);
@@ -129,6 +151,7 @@ const api = {
       }),
     );
   },
+  /** @param {Assignment["id"]} id */
   async deleteTask(id) {
     console.log(`Deleting task ${id}`);
     return ApiError.wrapFetch(
@@ -186,7 +209,7 @@ const api = {
         ),
       )
         .then(
-          /** @returns { { SectionColors: { LeadSectionId: number, HexColor: string }[] } }*/
+          /** @returns { Promise<{ SectionColors: { LeadSectionId: number, HexColor: string }[] }> }*/
           (r) => r.json(),
         )
         .then((r) => r.SectionColors)
@@ -207,6 +230,20 @@ const api = {
       ),
     ).then((r) => r.json()),
 
+  /**
+    * @param {{ [key in
+        "Missing"
+        |"Overdue"
+        |"DueToday"
+        |"DueTomorrow"
+        |"DueThisWeek"
+        |"DueNextWeek"
+        |"DueAfterNextWeek"
+        |"PastThisWeek"
+        |"PastLastWeek"
+        |"PastBeforeLastWeek"
+      ]: BlackbaudAssignmentPreview[] }} assignments
+    */
   parseAssignments: (assignments) =>
     Promise.all(
       assignments.Missing.concat(
@@ -219,11 +256,11 @@ const api = {
         assignments.PastThisWeek,
         assignments.PastLastWeek,
         assignments.PastBeforeLastWeek,
-      ).map((/** @type {BlackbaudAssignmentPreview} */ assignment) => {
+      ).map((assignment) => {
         if (assignment.UserTaskId !== 0) {
           return Task.addColor(Task.parse(assignment));
         } else {
-          return Assignment.addColor(Assignment.parse(assignment));
+          return AssignmentUtil.addColor(AssignmentUtil.parse(assignment));
         }
       }),
     ).then((assignments) => (setAssignmentsCache(assignments), assignments)),
@@ -233,7 +270,7 @@ const api = {
     async () =>
       api.getAllAssignmentData().then(
         (
-          /** @type { { Sections: { LeadSectionId: number, GroupName: string }[] } */ {
+          /** @type {{ Sections: { LeadSectionId: number, GroupName: string }[] }} */ {
             Sections: sections,
           },
         ) =>
@@ -248,7 +285,7 @@ const api = {
   )[0],
 };
 
-class ApiError extends Error {
+export class ApiError extends Error {
   static MESSAGES = {
     fetchAssignment: "could not fetch assignment",
     updateAssignmentStatus: "could not update assignment status",
@@ -267,10 +304,10 @@ class ApiError extends Error {
 
   /**
    * @param {keyof typeof ApiError.MESSAGES} action
-   * @param {Error} cause
+   * @param {Error?} cause
    * @param {boolean=} suggestReload Defaults to false
    */
-  constructor(action, cause, suggestReload = false) {
+  constructor(action, cause = null, suggestReload = false) {
     const msg = `${ApiError.MESSAGES[action] ?? action}${suggestReload ? ", try reloading the page" : ""} (${action})`;
     super(msg, { cause });
 
@@ -284,24 +321,27 @@ class ApiError extends Error {
   /**
    * Wrap an api fetch call w/ an API error.
    * @param {keyof typeof ApiError.MESSAGES} action
-   * @param {Promise<Response>} res
+   * @param {Promise<Response>} fetch
    */
-  static async wrapFetch(action, res) {
+  static async wrapFetch(action, fetch) {
     // Don't use Promise methods to avoid `InternalError: Promise rejection
     // value is a non-unwrappable cross-compartment wrapper.`
     // (see <https://bugzilla.mozilla.org/show_bug.cgi?id=1871516>)
 
-    /** @type {number} */
-    let status;
+    /** @type {number?} */
+    let status = null;
 
     try {
-      res = await res;
+      const res = await fetch;
       status = res.status;
 
       if (res.ok) return res;
       throw new Error(`api response not ok (${res.status})`);
     } catch (err) {
+      assertIsClass(err, Error);
       throw new ApiError(action, err, status === 403);
     }
   }
 }
+
+export default api;

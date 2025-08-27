@@ -1,17 +1,26 @@
-const isObject = (o) => o?.toString() === "[object Object]";
+/**
+ * @template T
+ * @param {T} o
+ * @returns {T extends { [key: string]: any} ? true : false} */
+const isObject = (o) =>
+  /** @type {any} */ (o?.toString() === "[object Object]");
 
 /**
  * Find the difference in two objects.
- * @template {Object} T
+ * @template {{[key: string]: any }} T
  * @param {T} a
  * @param {T} b
+ * @returns {{[key: string]: any }}
  */
-const findDiff = (a, b) => {
+export const findDiff = (a, b) => {
+  /** @type {{ [key: string]: any}} */
   const diff = {};
   for (const key of Object.keys(a)) {
-    if (a[key] !== b[key]) {
-      if (isObject(a[key]) && isObject(b[key])) {
-        const nestedDiff = findDiff(a[key], b[key]);
+    const av = a[key];
+    const bv = b[key];
+    if (av !== bv) {
+      if (isObject(av) && isObject(bv)) {
+        const nestedDiff = findDiff(av, bv);
         if (Object.keys(nestedDiff).length > 0) {
           diff[key] = nestedDiff;
         }
@@ -22,10 +31,10 @@ const findDiff = (a, b) => {
 };
 
 /**
- * @param {Object} o
- * @param {Object} diff
+ * @param {{ [key: string]: any }} o
+ * @param {{ [key: string]: any }} diff
  */
-const applyDiff = (o, diff) => {
+export const applyDiff = (o, diff) => {
   const clone = structuredClone(o);
   if (clone == null) return diff;
   if (diff == null) return clone;

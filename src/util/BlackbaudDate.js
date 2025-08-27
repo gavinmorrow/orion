@@ -1,3 +1,5 @@
+import Calendar from "./Calendar.util.js";
+
 const BlackbaudDate = {
   /**
    * Parse a blackbaud date string into a javascript `Date`.
@@ -8,6 +10,8 @@ const BlackbaudDate = {
     const [date, time, amPm] = str.split(" ");
     const [month, day, year] = date.split("/").map(Number);
     const [hour12, min] = time.split(":").map(Number);
+    if (amPm !== "AM" && amPm !== "PM")
+      throw new Error(`Time is not AM or PM: "${amPm}"`);
     const hour24 = Calendar.hour12ToHour24(hour12, amPm);
 
     return new Date(year, month - 1, day, hour24, min);
@@ -30,3 +34,4 @@ const BlackbaudDate = {
     return `${month}/${day}/${year} ${hour12}:${min} ${amPm}`;
   },
 };
+export default BlackbaudDate;

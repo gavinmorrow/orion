@@ -1,4 +1,15 @@
-class AssignmentBox extends HTMLElement {
+import { NonNull } from "/src/util/NonNull.js";
+
+import { conditionalClass } from "../common.js";
+
+import AssignmentUtil from "./assignment.js";
+import AssignmentPopup from "./AssignmentPopup.js";
+import TaskEditor from "./TaskEditor.js";
+
+/** @import { Assignment, Status } from "./assignment.js"; */
+/** @import { Settings } from "../common.js"; */
+
+export default class AssignmentBox extends HTMLElement {
   /** @type {Assignment} */
   assignment;
 
@@ -8,8 +19,20 @@ class AssignmentBox extends HTMLElement {
   /** @type {AssignmentPopup} */
   #popup;
 
-  /** @type {TaskEditor} */
-  #taskEditor;
+  /** Doesn't exist when not a task. @type {TaskEditor?} */
+  #taskEditor = null;
+
+  /** @type {HTMLElement} */
+  #wrapper;
+
+  /** @type {HTMLElement} */
+  #root;
+
+  /** @type {HTMLStyleElement} */
+  #style;
+
+  /** @type {HTMLAnchorElement} */
+  #link;
 
   /**
    * @param {Assignment} assignment
@@ -26,17 +49,18 @@ class AssignmentBox extends HTMLElement {
     // Create a shadow root
     const shadow = this.attachShadow({ mode: "open" });
 
-    const style = document.createElement("style");
-    shadow.appendChild(style);
+    this.#style = document.createElement("style");
+    shadow.appendChild(this.#style);
 
-    const wrapper = document.createElement("article");
+    this.#wrapper = document.createElement("article");
 
     const root = document.createElement("div");
     root.id = "root";
+    this.#root = root;
 
     if (this.assignment.isTask) {
       this.#taskEditor = new TaskEditor(this.assignment);
-      wrapper.appendChild(this.#taskEditor);
+      this.#wrapper.appendChild(this.#taskEditor);
     }
 
     // make entire card clickable to open link
@@ -45,30 +69,34 @@ class AssignmentBox extends HTMLElement {
     root.style.cursor = "pointer";
     root.addEventListener("click", (e) => {
       if (this.assignment.isTask) {
-        this.#taskEditor.showModal();
+        NonNull(this.#taskEditor).showModal();
       } else {
-        const link = root.querySelector("#title a");
-        if (e.target === link || document.getSelection().toString() !== "")
+        if (
+          e.target === this.#link ||
+          document.getSelection()?.toString() !== ""
+        )
           return;
-        else link.click();
+        else this.#link.click();
       }
     });
 
     // add the element for assignment title
-    root.appendChild(this.#createTitleElem());
+    this.#link = document.createElement("a");
+    root.appendChild(this.#createTitleElem(this.#link));
 
-    wrapper.appendChild(root);
+    this.#wrapper.appendChild(root);
 
     // add popup
-    wrapper.appendChild(this.#popup);
+    this.#wrapper.appendChild(this.#popup);
 
-    shadow.appendChild(wrapper);
+    shadow.appendChild(this.#wrapper);
   }
 
   connectedCallback() {
     this.#updateAssignment(this.assignment);
   }
 
+  /** @param {Assignment} assignment */
   #updateAssignment(assignment) {
     this.assignment = assignment;
     this.#taskEditor?.updateAssignment(assignment);
@@ -79,28 +107,32 @@ class AssignmentBox extends HTMLElement {
 
   #hydrateStyles() {
     // add classes for majors and completed assignments
-    const root = this.shadowRoot.getElementById("root");
+    conditionalClass(this.#root, "type-major", this.#isMajor());
+    conditionalClass(
+      this.#root,
+      "requires-submission",
+      this.#requiresSubmission(),
+    );
+    conditionalClass(this.#root, "collapse", this.#shouldCollapse());
+    conditionalClass(
+      NonNull(this.#root.parentElement),
+      "popup-left",
+      this.#shouldPopupLeft(),
+    );
 
-    conditionalClass(root, "type-major", this.#isMajor());
-    conditionalClass(root, "requires-submission", this.#requiresSubmission());
-    conditionalClass(root, "collapse", this.#shouldCollapse());
-    conditionalClass(root.parentElement, "popup-left", this.#shouldPopupLeft());
-
-    const style = this.shadowRoot.querySelector("style");
-    style.textContent = AssignmentBox.#stylesheet;
-
+    this.#style.textContent = AssignmentBox.#stylesheet;
     this.#refreshColors();
   }
 
-  #createTitleElem() {
+  #createTitleElem(/** @type {HTMLAnchorElement} */ link) {
     const e = document.createElement("p");
     e.id = "title";
-    e.appendChild(document.createElement("a"));
+    e.appendChild(link);
     return e;
   }
 
   #hydrateTitleElem() {
-    const titleElem = this.shadowRoot.querySelector("#title a");
+    const titleElem = this.#link;
 
     titleElem.innerHTML = this.assignment.title;
     if (this.#shouldCollapse()) {
@@ -109,11 +141,12 @@ class AssignmentBox extends HTMLElement {
     }
 
     // tasks don't have links
-    if (!this.assignment.isTask) titleElem.href = this.assignment.link;
+    if (!this.assignment.isTask)
+      titleElem.href = this.assignment.link ?? "javascript:void";
   }
 
   #refreshColors() {
-    const style = this.shadowRoot.querySelector("article").style;
+    const style = this.#wrapper.style;
 
     style.setProperty("--color-status", this.#assignmentStatusColor());
     style.setProperty("--color-class", this.#assignmentClassColor());
@@ -146,15 +179,15 @@ class AssignmentBox extends HTMLElement {
   }
 
   #shouldCollapse() {
-    return Assignment.isCompleted(this.assignment);
+    return AssignmentUtil.isCompleted(this.assignment);
   }
 
   #isMajor() {
-    return Assignment.isMajor(this.assignment);
+    return AssignmentUtil.isMajor(this.assignment);
   }
 
   #requiresSubmission() {
-    return Assignment.requiresSubmission(this.assignment);
+    return AssignmentUtil.requiresSubmission(this.assignment);
   }
 
   #shouldPopupLeft() {

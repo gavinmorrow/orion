@@ -1,38 +1,53 @@
+import api from "/src/util/api.js";
+import BlackbaudDate from "/src/util/BlackbaudDate.js";
+
+import AssignmentUtil from "./assignment.js";
+
+/** @import { BlackbaudAssignmentPreview } from "/src/util/api.js" */
+/** @import { BlackbaudTask } from "./TaskEditor.js" */
+/** @import { Assignment, Status } from "./assignment.js" */
+
 const Task = {
+  /** @param {Assignment[]} assignments */
   async populateAllIn(assignments) {
     const tasks = await api.getAllAssignmentData().then(
-      assignments => Promise.all(
-        assignments.DueToday.concat(
-          assignments.DueTomorrow,
-          assignments.DueThisWeek,
-          assignments.DueNextWeek,
-          assignments.DueAfterNextWeek,
-          assignments.PastThisWeek,
-          assignments.PastLastWeek,
-          assignments.PastBeforeLastWeek,
-        )
-          .filter((a) => a.UserTaskId !== 0)
-          .map(Task.parse)
-          .map(Task.addColor),
-      ),
-      err => {
+      (assignments) =>
+        Promise.all(
+          assignments.DueToday.concat(
+            assignments.DueTomorrow,
+            assignments.DueThisWeek,
+            assignments.DueNextWeek,
+            assignments.DueAfterNextWeek,
+            assignments.PastThisWeek,
+            assignments.PastLastWeek,
+            assignments.PastBeforeLastWeek,
+          )
+            .filter((/** @type {BlackbaudTask} */ a) => a.UserTaskId != 0)
+            .map(Task.parse)
+            .map(Task.addColor),
+        ),
+      (err) => {
         reportError(err);
         // Allow the rest of the UI to work, just without tasks.
         return [];
-      }
+      },
     );
     return assignments.filter((a) => !a.isTask).concat(tasks);
   },
 
+  // TODO: figure out the type
+  /** @param {BlackbaudAssignmentPreview} t @returns {Assignment} */
   parse(t) {
     return {
       id: Number(t.UserTaskId),
-      color: undefined,
+      color: null,
       title: t.ShortDescription,
       link: null,
       description: null,
-      status: Object.keys(api.statusNumMap).find(
-        (k) => api.statusNumMap[k] === t.TaskStatus,
+      status: /** @type {Status} */ (
+        Object.keys(api.statusNumMap).find(
+          (k) => api.statusNumMap[/** @type {Status} */ (k)] === t.TaskStatus,
+        )
       ),
       // duplicated to handle both bc I can't figure out which one blackbaud
       // uses. It might be both???
@@ -48,10 +63,14 @@ const Task = {
       type: "My task",
       isTask: true,
       submissionMethod: null,
+      attachments: [],
     };
   },
 
+  /** @param {Assignment} t */
   async addColor(t) {
-    return Assignment.addColor(t);
-  }
+    return AssignmentUtil.addColor(t);
+  },
 };
+
+export default Task;

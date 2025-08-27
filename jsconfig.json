@@ -4,6 +4,22 @@
 
   "compilerOptions": {
     "checkJs": true,
-    "module": "es2015",
-  }
+    "lib": ["ES2023", "DOM"],
+    "target": "es2023",
+    // Using node20 instead of es2023 b/c it makes imports include the `.js`
+    "module": "node20",
+    "allowUmdGlobalAccess": true
+    "strict": true,
+    // Allows for absolute imports instead of always relative
+    // See <https://stackoverflow.com/a/55918656/15920018> (2025-08-28)
+    "baseUrl": "./",
+    "paths": {
+      // Make absolute paths start with `/`, so browsers treat them as absolute
+      "/*": [
+        "./*"
+      ]
+    }
+  },
+
+  "include": ["src/**/*", "polyfill/**/*"]
 }

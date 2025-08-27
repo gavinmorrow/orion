@@ -1,25 +1,30 @@
+import api from "../../util/api";
+import { NonNull } from "../../util/NonNull";
+import { setAssignmentsCache, waitFor, waitForElems } from "../common";
+
+/** @import { Assignment, Status } from "./assignment.js" */
+
 /** @param {String} link */
 const parseForSectionId = (link) => {
   const id = Number(
-    link.match(/app\/student#academicclass\/(?<id>\d+)/)?.groups.id,
+    NonNull(link.match(/app\/student#academicclass\/(?<id>\d+)/)?.groups).id,
   );
-  return Number.isNaN(id) ? null : id;
+  return Number.isNaN(id) ? undefined : id;
 };
 
 /** @param {String} link */
 const parseForAssignmentIndexId = (link) => {
   const id = Number(
-    link.match(
-      /lms-assignment\/assignment\/assignment-student-view\/(?<id>\d+)/,
-    )?.groups.id,
+    NonNull(
+      link.match(
+        /lms-assignment\/assignment\/assignment-student-view\/(?<id>\d+)/,
+      )?.groups,
+    ).id,
   );
   return Number.isNaN(id) ? null : id;
 };
 
-/**
- * @param {HTMLElement} detailsElem
- * @returns {AssignmentDetails}
- */
+/** @param {HTMLElement} detailsElem */
 const parseFullDetailsElem = (detailsElem) => {
   const details = detailsElem.textContent;
   let parts = details.split("|").map((part) => part.trim());
@@ -27,7 +32,8 @@ const parseFullDetailsElem = (detailsElem) => {
   let isExtraCredit = false;
   // If parts includes extra credit, mark that down and remove it
   // (so the rest of the code works right)
-  const isPartExtraCredit = (p) => p.toLowerCase().includes("extra credit");
+  const isPartExtraCredit = (/** @type {string} */ p) =>
+    p.toLowerCase().includes("extra credit");
   if (parts.find(isPartExtraCredit)) {
     isExtraCredit = true;
     parts = parts.filter((p) => !isPartExtraCredit(p));
@@ -52,9 +58,15 @@ const parseFullDetailsElem = (detailsElem) => {
   const maxPoints = hasPoints ? parseInt(parts[2]) : null;
   // *maybe* the third element
   const classIndex = hasPoints ? 3 : 2;
+  /** @type {Assignment["class"]|undefined} */
   const class_ = isTask
-    ? null
-    : { name: parts[classIndex], link: detailsElem.querySelector("button a").href };
+    ? undefined
+    : {
+        name: parts[classIndex],
+        link: /** @type {HTMLAnchorElement} */ (
+          detailsElem.querySelector("button a")
+        )?.href,
+      };
   if (class_?.link) class_.id = parseForSectionId(class_.link);
   // the last two elements (type is second-to-last).
   // _assignmentOrTask is the literal string "Assignment" or "My tasks",
@@ -72,9 +84,17 @@ const parseFullDetailsElem = (detailsElem) => {
   };
 };
 
+/** @param {string} s @returns {asserts s is Status}*/
+const assertIsStatus = (s) => {
+  for (const status of Object.keys(api.statusNumMap)) {
+    if (s === status) return;
+  }
+  throw new Error(`unrecognized status: "${s}"`);
+};
+
 /**
- * @param {HTMLElement} elem
- * @returns {Assignment}
+ * @param {Element} elem
+ * @returns {Partial<Assignment>}
  */
 const parseAssignmentElem = (elem) => {
   // sky-split-view-workspace-content Whole section
@@ -94,21 +114,42 @@ const parseAssignmentElem = (elem) => {
   //               sky-icon i::before Status icon
   //               button Status text // FIXME: does this work when you can't click it?
 
-  const color = elem.querySelector("div.left-block").style.backgroundColor;
-  const { textContent: title, href: link } = elem.querySelector(
-    "div.middle-block app-assignment-title-link a",
+  const color = NonNull(
+    // Narrowing type from `SVGElement|HTMLElement`, b/c svg doesn't have style
+    // SAFETY: query selector selects for `div`
+    /** @type {HTMLElement?} */ (elem.querySelector("div.left-block")),
+    "assignment color elem",
+  ).style.backgroundColor;
+  const { textContent: title, href: link } = NonNull(
+    // SAFETY: query selector selects for `a`
+    /** @type {HTMLAnchorElement?} */ (
+      elem.querySelector("div.middle-block app-assignment-title-link a")
+    ),
+    "assignment link elem",
   );
-  const assignmentIndexId = parseForAssignmentIndexId(link);
-  elem
-    .querySelector("div.middle-block div.assignment-details")
+  // FIXME: figre out a way to work without this?
+  //        maybe make assignment.id optional?
+  const assignmentIndexId = NonNull(
+    parseForAssignmentIndexId(link),
+    "assignment index id",
+  );
+  NonNull(
+    elem.querySelector("div.middle-block div.assignment-details"),
+    "assignment details elem",
+  )
     // FIXME: uh wtf. huh???
     .append("| Extra credit");
   const details = parseFullDetailsElem(
-    elem.querySelector("div.middle-block div.assignment-details"),
+    NonNull(
+      elem.querySelector("div.middle-block div.assignment-details"),
+      "assignment details elem",
+    ),
   );
-  const status = elem
-    .querySelector("div.right-block app-assignment-status-display")
-    .textContent.trim();
+  const status = NonNull(
+    elem.querySelector("div.right-block app-assignment-status-display"),
+    "assignment status elem",
+  ).textContent.trim();
+  assertIsStatus(status);
 
   return {
     id: assignmentIndexId,
@@ -126,10 +167,18 @@ const parseAssignmentElem = (elem) => {
  * @returns {Promise<HTMLElement>}
  */
 const filterElem = async (time) =>
-  await waitFor(() =>
-    Array.from(document.querySelectorAll("sky-radio label")).find(
-      (elem) => elem.textContent == `${time} assignments`,
-    ),
+  await waitFor(
+    () =>
+      NonNull(
+        // SAFETY: query selector selects for label element
+        /** @type {HTMLElement} */ (
+          Array.from(document.querySelectorAll("sky-radio label")).find(
+            (elem) => elem.textContent == `${time} assignments`,
+          )
+        ),
+        "filter elem",
+      ),
+    null,
   );
 
 /**
@@ -138,6 +187,11 @@ const filterElem = async (time) =>
  */
 const filterBy = async (time) => filterElem(time).then((e) => e.click());
 
+/**
+ * @template T
+ * @param {"Active"|"Past"} time
+ * @param {(() => Promise<T>) | (() => T)} fn
+ * @returns {Promise<T>} */
 const withFilter = async (time, fn) => {
   await filterBy(time);
   const res = await fn();
@@ -163,9 +217,9 @@ const deduplicateAssignments = (assignments) =>
 
 /**
  * @param {"Active"|"Past"} time
- * @returns {Promise<Assignment[]>} A promise of an array of Assignments sorted by due date.
+ * @returns {Promise<Assignment[]?>} A promise of an array of Assignments sorted by due date.
  */
-const scrapeAssignments = (time) =>
+export const scrapeAssignments = (time) =>
   withFilter(time, async () => {
     const assignments = await waitForElems(
       "app-student-assignments-repeater sky-repeater-item-content sky-repeater sky-repeater-item-title",
@@ -178,10 +232,10 @@ const scrapeAssignments = (time) =>
         Array.from(assignments).map(parseAssignmentElem),
       ),
     ).toSorted(
-      /** @param {Assignment} a @param {Assignment} b */(a, b) =>
-        a.dueDate - b.dueDate,
+      /** @param {Assignment} a @param {Assignment} b */ (a, b) =>
+        a.dueDate.getTime() - b.dueDate.getTime(),
     );
-  }).then(assignments => {
-    setAssignmentsCache(assignments);
+  }).then((assignments) => {
+    if (assignments != null) setAssignmentsCache(assignments);
     return assignments;
   });

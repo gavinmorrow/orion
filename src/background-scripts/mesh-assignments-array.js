@@ -1,18 +1,23 @@
 import meshObjects from "../util/meshObjects.js";
 
-/**
- * @template T
- * @param {T[]} as
- * @returns {Map<number, T>}
- */
-const mapAssignments = as => as.reduce(
-  (/** @type {Map<number, Object>} */ map, a) =>
-    // FIXME: would task ids conflict w/ assignment ids?
-    map.set(a.id, a),
-  new Map(),
-);
+/** @import { Assignment } from "../content-scripts/assignment-center/assignment.js" */
 
-export default function meshAssignmentsArray(/** @type {Object[]} */ a, /** @type {Object[]} */ b) {
+/**
+ * @param {Assignment[]} as
+ * @returns {Map<number, {id: number}>}
+ */
+const mapAssignments = (as) =>
+  as.reduce(
+    (/** @type {Map<number, Object>} */ map, a) =>
+      // FIXME: would task ids conflict w/ assignment ids?
+      map.set(a.id, a),
+    new Map(),
+  );
+
+export default function meshAssignmentsArray(
+  /** @type {Assignment[]} */ a,
+  /** @type {Assignment[]} */ b,
+) {
   // Turn each array into a map by assignment id.
   const aMap = mapAssignments(a);
   const bMap = mapAssignments(b);
@@ -40,4 +45,4 @@ export default function meshAssignmentsArray(/** @type {Object[]} */ a, /** @typ
   }
 
   return final;
-};
+}

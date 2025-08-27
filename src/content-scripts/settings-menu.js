@@ -1,3 +1,15 @@
+import { NonNull } from "/src/util/NonNull.js";
+
+import {
+  buttonStylesInner,
+  featureFlag,
+  promiseError,
+  settings,
+  updateSettings,
+  updateSettingsCache,
+  waitForElem,
+} from "./common.js";
+
 const settingsOptions = {
   loginAutomatically: {
     desc: "Automatically click the buttons required to login.",
@@ -71,11 +83,14 @@ const settingsOptions = {
   },
 };
 
-class SettingsMenu extends HTMLElement {
+export default class SettingsMenu extends HTMLElement {
+  #shadowRoot;
+
   constructor() {
     super();
 
     const shadow = this.attachShadow({ mode: "open" });
+    this.#shadowRoot = shadow;
     shadow.appendChild(document.createElement("style"));
 
     // Prevent blackbaud from throwing a fit in the console
@@ -107,11 +122,12 @@ class SettingsMenu extends HTMLElement {
   }
 
   #createModalElements() {
-    const toTitleCase = (camelCase) =>
+    const toTitleCase = (/** @type {string} */ camelCase) =>
       camelCase.charAt(0).toUpperCase() +
       camelCase.replaceAll(/([A-Z])/g, " $1").slice(1);
 
-    /** @param {String[]} path @param {[String, String|Object]} _ */
+    // TODO: remove any
+    /** @param {String[]} path @param {[String, any]} _ */
     const createOptionElem = (path, [name, value]) => {
       const newPath = path.concat(name);
       const readableName = toTitleCase(name);
@@ -132,7 +148,7 @@ class SettingsMenu extends HTMLElement {
         const input = document.createElement("input");
         input.name = this.#idForPath(newPath);
         input.type = value?.type ?? "checkbox"; // default to bool
-        input.addEventListener("change", (e) => {
+        input.addEventListener("change", () => {
           const newValue =
             input.type === "checkbox" ? input.checked : input.value;
           const partial = this.#constructFromPath(newPath, newValue);
@@ -144,7 +160,7 @@ class SettingsMenu extends HTMLElement {
               // FIXME: rest of the page doesn't dynamically update w/ settings change
             },
             (err) => {
-              alert("Error updating settings:", err);
+              alert("Error updating settings: " + err);
               console.error("Error updating settings:", err);
             },
           );
@@ -176,7 +192,8 @@ class SettingsMenu extends HTMLElement {
     return Object.entries(settingsOptions).map(createOptionElem.bind(this, []));
   }
   async #hydrateModal() {
-    /** @param {String[]} path @param {[String, String|Object]} _ */
+    // TODO: remove any
+    /** @param {String[]} path @param {[String, any]} _ @returns {Promise<void>}*/
     const hydrate = async (path, [name, value]) => {
       const fullPath = path.concat(name);
 
@@ -184,9 +201,10 @@ class SettingsMenu extends HTMLElement {
         // final value, there should be an input for this
         const settingValue = await this.#getValueFromPath(fullPath);
 
-        /** @type {HTMLInputElement} */
-        const elem = this.shadowRoot.querySelector(
-          `input[name="${this.#idForPath(fullPath)}"]`,
+        const elem = /** @type {HTMLInputElement} */ (
+          this.#shadowRoot.querySelector(
+            `input[name="${this.#idForPath(fullPath)}"]`,
+          )
         );
 
         if (elem.type === "checkbox") {
@@ -207,36 +225,47 @@ class SettingsMenu extends HTMLElement {
 
   #hydrateToggleModalBtn() {
     /** @type {HTMLSlotElement} */
-    const slot = this.shadowRoot.querySelector("slot[name='show-modal']");
+    const slot = NonNull(
+      this.#shadowRoot.querySelector("slot[name='show-modal']"),
+    );
     const [btn] = slot.assignedElements({ flatten: true });
 
-    const modal = this.shadowRoot.getElementById("modal");
-    btn.addEventListener("click", (e) => modal.showModal());
+    const modal = /** @type {HTMLDialogElement} */ (
+      NonNull(this.#shadowRoot.getElementById("modal"))
+    );
+    btn.addEventListener("click", () => modal.showModal());
   }
 
   #hydrateStyles() {
-    this.shadowRoot.querySelector("style").textContent = this.#getStylesheet();
+    NonNull(this.#shadowRoot.querySelector("style")).textContent =
+      this.#getStylesheet();
   }
 
   /** @param {String[]} path */
   async #getValueFromPath(path) {
+    // TODO: remove any
+    /** @type {any} */
     let o = await settings();
     for (const segment of path) {
       if (o == null) return null;
+      //@ts-ignore only assigning keys of settings
       o = o[segment];
     }
     return o;
   }
 
-  /** @param {String[]} path */
+  // TODO: remove any
+  /** @param {string[]} path @param {any} value */
   #constructFromPath(path, value) {
     if (path.length === 0) return value;
 
     const outer = {};
+    //@ts-ignore only assigning keys
     outer[path[0]] = this.#constructFromPath(path.slice(1), value);
     return outer;
   }
 
+  /** @param {string[]} path */
   #idForPath(path) {
     return path.join(".");
   }

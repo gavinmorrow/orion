@@ -1,9 +1,32 @@
-class AssignmentCenter extends HTMLElement {
+/** @import { Assignment } from "./assignment.js" */
+/** @import { BlackbaudTask } from "./TaskEditor.js" */
+/** @import { BlackbaudAssignmentPreview } from "/src/util/api.js"; */
+/** @import { Settings } from "../common.js" */
+
+import meshAssignmentsArray from "/src/background-scripts/mesh-assignments-array.js";
+import api from "/src/util/api.js";
+import { assertIsClass } from "/src/util/assertIsClass.js";
+import Calendar from "/src/util/Calendar.util.js";
+import { NonNull } from "/src/util/NonNull.js";
+import { applyDiff, findDiff } from "/src/util/objectDiff.js";
+
+import { buttonStylesInner } from "../common.js";
+
+import AssignmentUtil from "./assignment.js";
+import AssignmentBox from "./AssignmentBox.js";
+import ChangeAssignmentEvent from "./events/ChangeAssignmentEvent.js";
+import CreateTaskEvent from "./events/CreateTaskEvent.js";
+import Task from "./Task.js";
+
+export default class AssignmentCenter extends HTMLElement {
   /** @type {Assignment[]} */
   assignments;
 
   /** @type {Settings} */
   settings;
+
+  /** @type {ShadowRoot} */
+  #shadowRoot;
 
   /** @type {HTMLElement} */
   #grid;
@@ -11,37 +34,36 @@ class AssignmentCenter extends HTMLElement {
   /** @type {[Date, Date]} */
   #visibleDateRange;
 
-  /** @type {[number, number, number, number, number, number]} */
-  #assignmentsOnDay = [0, 0, 0, 0, 0, 0];
+  /** @type {[number, number, number, number, number, number, number]} */
+  #assignmentsOnDay = [0, 0, 0, 0, 0, 0, 0];
 
   /**
    * Show a day of the week in the calendar (ie a column in the grid).
-   * @param {HTMLElement} calendar The `#main-calendar` element.
    * @param {0|1|2|3|4|5|6} day The day (of the week, 0-indexed) to show. Only `0` and `6` have any effect, the rest are no-ops.
    */
   #showDay(day) {
     this.#assignmentsOnDay[day] += 1;
 
     if (day === 0 || day === 6) {
-      const calendar = this.shadowRoot.getElementById("main-calendar");
-
       const dayName = day === 0 ? "sunday" : "saturday";
       const className = `show-${dayName}`;
 
-      calendar.classList.add(className);
+      this.#grid.classList.add(className);
     }
   }
 
+  /**
+   * Hide a day of the week in the calendar (ie a column in the grid).
+   * @param {0|1|2|3|4|5|6} day The day (of the week, 0-indexed) to show. Only `0` and `6` have any effect, the rest are no-ops.
+   */
   #hideDay(day) {
     this.#assignmentsOnDay[day] -= 1;
 
     if (this.#assignmentsOnDay[day] <= 0 && (day === 0 || day === 6)) {
-      const calendar = this.shadowRoot.getElementById("main-calendar");
-
       const dayName = day === 0 ? "sunday" : "saturday";
       const className = `show-${dayName}`;
 
-      calendar.classList.remove(className);
+      this.#grid.classList.remove(className);
     }
   }
 
@@ -59,10 +81,12 @@ class AssignmentCenter extends HTMLElement {
     this.extendCalendarGrid = this.#extendCalendarGrid.bind(this);
 
     this.addEventListener("change-assignment", (e) => {
+      assertIsClass(e, ChangeAssignmentEvent);
       this.#updateAssignment(e.id, e.isTask, e.changes).catch(reportError);
       e.stopPropagation();
     });
     this.addEventListener("create-task", (e) => {
+      assertIsClass(e, CreateTaskEvent);
       this.#addTask(e.task).catch(reportError);
       e.stopPropagation();
     });
@@ -70,6 +94,7 @@ class AssignmentCenter extends HTMLElement {
     // create DOM
     // Create a shadow root
     const shadow = this.attachShadow({ mode: "open" });
+    this.#shadowRoot = shadow;
 
     // Prevent blackbaud from throwing a fit in the console
     shadow.addEventListener("click", (e) => e.stopPropagation());
@@ -79,14 +104,19 @@ class AssignmentCenter extends HTMLElement {
     style.textContent = AssignmentCenter.#stylesheet;
     shadow.appendChild(style);
 
+    // create 4 weeks starting from this week
+    // MAKE SURE TO HANDLE DATES CORRECTLY!!
+    // **Be careful when doing custom date manipulation.**
+    const dates = AssignmentCenter.#allCalendarDates();
+    this.#visibleDateRange = [dates[0], dates[dates.length - 1]];
+
     const root = document.createElement("main");
-    root.appendChild(this.#createCalendarGrid());
+    this.#grid = this.#createCalendarGrid(dates);
+    root.appendChild(this.#grid);
 
     const extendBtn = document.createElement("button");
     extendBtn.textContent = "Extend by 1 week";
-    extendBtn.addEventListener("click", () => {
-      this.#extendCalendarGrid(1);
-    });
+    extendBtn.addEventListener("click", () => this.#extendCalendarGrid(1));
     root.appendChild(extendBtn);
 
     shadow.appendChild(root);
@@ -96,12 +126,13 @@ class AssignmentCenter extends HTMLElement {
     this.#hydrateCalendar();
   }
 
-  #createCalendarGrid() {
-    this.#grid = document.createElement("div");
-    this.#grid.id = "main-calendar";
+  /** @param {Date[]} dates The dates to display in the calendar. It should represent the same set of dates as this.#visibleDateRange. */
+  #createCalendarGrid(dates) {
+    const grid = document.createElement("div");
+    grid.id = "main-calendar";
 
     // create top row
-    [
+    /** @type {const} */ ([
       "Sunday",
       "Monday",
       "Tuesday",
@@ -109,20 +140,15 @@ class AssignmentCenter extends HTMLElement {
       "Thursday",
       "Friday",
       "Saturday",
-    ]
+    ])
       .map(this.#createCalendarHeader)
-      .forEach((elem) => this.#grid.appendChild(elem));
+      .forEach((elem) => grid.appendChild(elem));
 
-    // create 4 weeks starting from this week
-    // MAKE SURE TO HANDLE DATES CORRECTLY!!
-    // **Be careful when doing custom date manipulation.**
-    const dates = AssignmentCenter.#allCalendarDates();
-    this.#visibleDateRange = [dates[0], dates[dates.length - 1]];
     dates
       .map(this.#createCalendarBox.bind(this))
-      .forEach((list) => this.#grid.appendChild(list));
+      .forEach((list) => grid.appendChild(list));
 
-    return this.#grid;
+    return grid;
   }
 
   /** @param {number} weeks If positive, weeks will be appended. If negative, prepended. */
@@ -141,7 +167,7 @@ class AssignmentCenter extends HTMLElement {
         this.#visibleDateRange[0] = date;
       }
 
-      const firstBox = this.#grid.querySelector(".calendar-box");
+      const firstBox = NonNull(this.#grid.querySelector(".calendar-box"));
       firstBox.before(...boxes);
     } else if (weeks > 0) {
       const originalLastDay = this.#visibleDateRange[1];
@@ -212,7 +238,7 @@ class AssignmentCenter extends HTMLElement {
   #hydrateCalendar() {
     for (const assignment of this.assignments) {
       const date = Calendar.resetDate(assignment.dueDate);
-      const list = this.shadowRoot.getElementById(
+      const list = this.#shadowRoot.getElementById(
         AssignmentCenter.#idForAssignmentList(date),
       );
 
@@ -224,6 +250,7 @@ class AssignmentCenter extends HTMLElement {
         // TODO: Don't completely rerender everything
         box.updateAssignment(assignment);
       } else {
+        assertIsClass(list, HTMLUListElement);
         this.#insertAssignmentBox(list, assignment);
 
         // Eventually the description will be updated, just not immediately
@@ -248,12 +275,14 @@ class AssignmentCenter extends HTMLElement {
 
     /**
      * The final, sorted order of assignment boxes in the list.
-     * (*After* the new box is inserted.)
-     * @type {AssignmentBox[]}
-     */
-    const idealBoxes = Array.from(list.querySelectorAll("li assignment-box"))
+     * (*After* the new box is inserted.) */
+    const idealBoxes = Array.from(
+      /** @type {NodeListOf<AssignmentBox>} */ (
+        list.querySelectorAll("li assignment-box")
+      ),
+    )
       .concat(newBox)
-      .toSorted((a, b) => Assignment.sort(a.assignment, b.assignment));
+      .toSorted((a, b) => AssignmentUtil.sort(a.assignment, b.assignment));
 
     // find index to insert
     const index = idealBoxes.findIndex(
@@ -263,8 +292,8 @@ class AssignmentCenter extends HTMLElement {
     /** @type {AssignmentBox?} */
     const nextBox = idealBoxes[index + 1];
     // this works bc when `nextBox` is null it's the same as `list.append`.
-    list.insertBefore(newBox.parentElement, nextBox?.parentElement);
-    this.#showDay(assignment.dueDate.getDay());
+    list.insertBefore(NonNull(newBox.parentElement), nextBox?.parentElement);
+    this.#showDay(/** @type {0|1|2|3|4|5|6} */ (assignment.dueDate.getDay()));
   }
 
   /**
@@ -278,28 +307,28 @@ class AssignmentCenter extends HTMLElement {
     return box;
   }
 
-  /** @param {assignment} @returns {void} */
+  /** @param {Assignment} assignment @returns {void} */
   #asyncAddDescriptionToAssignment(assignment) {
     // Intentionally not await-ing the Promise.
-    Assignment.getBlackbaudReprFor(assignment)
-      .then(Assignment.parseBlackbaudRepr)
+    AssignmentUtil.getBlackbaudReprFor(assignment)
+      .then(AssignmentUtil.parseBlackbaudRepr)
       .then(this.#updateAssignment.bind(this, assignment.id, assignment.isTask))
       .catch(reportError);
   }
 
   #updateTodayElem() {
     // remove today class from old today
-    const today = this.shadowRoot.querySelector(".today");
+    const today = this.#shadowRoot.querySelector(".today");
     today?.classList.remove("today");
 
     // add today class to new today
-    const todayList = this.shadowRoot.getElementById(
+    const todayList = this.#shadowRoot.getElementById(
       AssignmentCenter.#idForAssignmentList(this.#findSelectedDate()),
     );
-    todayList?.parentElement.classList.add("today");
+    NonNull(todayList?.parentElement).classList.add("today");
   }
 
-  /** @type {Date[]} */
+  /** @returns {Date[]} */
   static #allCalendarDates() {
     const today = Calendar.resetDate(new Date());
     const dateOfSunday = Calendar.dateForSundayOfWeek(today);
@@ -308,6 +337,7 @@ class AssignmentCenter extends HTMLElement {
       .map((_, i) => Calendar.offsetFromDay(dateOfSunday, i));
   }
 
+  /** @param {Date} date */
   static #idForAssignmentList(date) {
     return `assignment-list-${date.getTime()}`;
   }
@@ -320,21 +350,26 @@ class AssignmentCenter extends HTMLElement {
 
   /** @param {Assignment[]} assignments */
   #meshAssignments(assignments) {
-    this.assignments = meshAssignmentsArray(this.assignments, assignments);
+    this.assignments = /** @type {Assignment[]} */ (
+      meshAssignmentsArray(this.assignments, assignments)
+    );
     this.#hydrateCalendar();
   }
 
   // TODO: refactor
-  /** @param {BlackbaudTask} task */
+  /** @param {BlackbaudAssignmentPreview & BlackbaudTask} task */
   async #addTask(task) {
-    const taskExists = task.UserTaskId != undefined && task.UserTaskId != "";
+    const taskExists = task.UserTaskId != undefined && task.UserTaskId != 0;
     if (taskExists) {
       await api.updateTask(task);
 
       // find diff in stored task and task
-      const storedTask = this.assignments.find((a) => a.id == task.UserTaskId);
+      const storedTask = this.assignments.find(
+        // TODO: figure out whether the id is a number or string
+        (a) => a.id == task.UserTaskId,
+      );
       const parsedTask = await Task.addColor(Task.parse(task));
-      const diff = findDiff(storedTask, parsedTask);
+      const diff = findDiff(NonNull(storedTask), parsedTask);
 
       // update stored task
       console.log(`Updating UI for task ${parsedTask.id}`);
@@ -349,18 +384,20 @@ class AssignmentCenter extends HTMLElement {
     }
   }
 
-  /** @param {Number} id @param {boolean} isTask @param {Assignment?} changes */
+  /** @param {Number} id @param {boolean} isTask @param {Partial<Assignment>} changes */
   async #updateAssignment(id, isTask, changes) {
     try {
       // update internal object
       const index = this.assignments.findIndex((a) => a.id === id);
       if (index === -1) return;
-      this.assignments[index] = applyDiff(this.assignments[index], changes);
+      this.assignments[index] = /** @type {Assignment} */ (
+        applyDiff(this.assignments[index], changes)
+      );
 
       // check for if the status in the backend needs to be updated
       if (changes?.status != undefined) {
         if (isTask) await api.updateTaskStatus(this.assignments[index]);
-        else await api.updateAssignmentStatus(id, changes.status, isTask);
+        else await api.updateAssignmentStatus(id, changes.status);
       }
 
       // check if task needs to be deleted
@@ -368,32 +405,32 @@ class AssignmentCenter extends HTMLElement {
         await api.deleteTask(id);
 
         // remove the element corresponding to it
-        this.#findAssignmentBoxFor(id).remove();
+        NonNull(this.#findAssignmentBoxFor(id)).remove();
 
         const removed = this.assignments.splice(index, 1)[0];
-        this.#hideDay(removed.dueDate.getDay());
+        this.#hideDay(/** @type {0|1|2|3|4|5|6} */ (removed.dueDate.getDay()));
       } else {
         // otherwise, update the element corresponding to it
 
         // handle the due date changing (ie w/ tasks)
-        if (Object.hasOwn(changes, "dueDate")) {
-          const list = this.shadowRoot.getElementById(
+        if (changes.dueDate != undefined) {
+          const list = this.#shadowRoot.getElementById(
             AssignmentCenter.#idForAssignmentList(
               Calendar.resetDate(changes.dueDate),
             ),
           );
 
           // just remove the old element
-          this.#findAssignmentBoxFor(id).remove();
+          NonNull(this.#findAssignmentBoxFor(id)).remove();
           // reparent, if the day is being shown
           if (list != null) {
+            assertIsClass(list, HTMLUListElement);
             this.#insertAssignmentBox(list, this.assignments[index]);
           }
         }
 
         // update the element
-        /** @type {AssignmentBox} */
-        const assignmentBox = this.#findAssignmentBoxFor(id);
+        const assignmentBox = NonNull(this.#findAssignmentBoxFor(id));
         assignmentBox.updateAssignment(this.assignments[index]);
       }
     } catch (err) {
@@ -401,11 +438,13 @@ class AssignmentCenter extends HTMLElement {
     }
   }
 
-  /** @param {number} id @returns {AssignmentBox?} */
+  /** @param {number} id @returns {AssignmentBox | undefined} */
   #findAssignmentBoxFor(id) {
-    return Array.from(this.shadowRoot.querySelectorAll("assignment-box")).find(
-      (/** @type {AssignmentBox} */ box) => box.assignment.id === id,
-    );
+    return Array.from(
+      /** @type {NodeListOf<AssignmentBox>} */ (
+        this.#shadowRoot.querySelectorAll("assignment-box")
+      ),
+    ).find((box) => box.assignment.id === id);
   }
 
   /**
@@ -415,6 +454,7 @@ class AssignmentCenter extends HTMLElement {
   #findSelectedDate(start = 1) {
     const today = new Date();
     if (this.assignments.length === 0) return today;
+    // eslint-disable-next-line no-constant-condition -- it reads nicer than a while loop
     for (let offset = start; true; offset += 1) {
       const date = Calendar.offsetFromDay(today, offset);
 

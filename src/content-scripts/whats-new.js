@@ -1,8 +1,11 @@
+import { BannerAlert } from "./banner-alert";
+import { promiseError, VERSION } from "./common";
+
 const getViewedVersions = async () =>
   new Set(
     await browser.runtime.sendMessage({ type: "whatsNew.getViewedVersions" }),
   );
-const setVersionViewed = async (data) =>
+const setVersionViewed = async (/** @type {string} */ data) =>
   browser.runtime.sendMessage({ type: "whatsNew.setVersionViewed", data });
 
 promiseError(async () => {

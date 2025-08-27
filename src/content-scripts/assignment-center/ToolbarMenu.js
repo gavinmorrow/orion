@@ -1,5 +1,27 @@
-class ToolbarMenu extends HTMLElement {
-  constructor(elems) {
+import { assertIsClass } from "/src/util/assertIsClass.js";
+
+import {
+  buttonStylesInner,
+  clearAssignmentsCache,
+  VERSION,
+} from "../common.js";
+import SettingsMenu from "../settings-menu.js";
+
+import CreateTaskEvent from "./events/CreateTaskEvent.js";
+import TaskEditor from "./TaskEditor.js";
+
+/** @import AssignmentCenter from "./AssignmentCenter.js"; */
+
+export default class ToolbarMenu extends HTMLElement {
+  /**
+   * @typedef {object} ToolbarMenuElems
+   * @prop {HTMLElement} oldElem
+   * @prop {AssignmentCenter} assignmentCenter */
+
+  /** @type {ToolbarMenuElems} */
+  elems;
+
+  constructor(/** @type {ToolbarMenuElems} */ elems) {
     super();
 
     this.elems = elems;
@@ -79,20 +101,18 @@ class ToolbarMenu extends HTMLElement {
 
   #createTaskEditor() {
     const taskEditor = new TaskEditor(null);
-    taskEditor.addEventListener(
-      "create-task",
-      (/** @type {CreateTaskEvent} */ e) => {
-        // Clone the task to prevent error:
-        // InvalidStateError: An attempt was made to use an object that is not, or is no longer, usable
-        this.elems.assignmentCenter.dispatchEvent(new CreateTaskEvent(e.task));
-        e.stopPropagation();
-      },
-    );
+    taskEditor.addEventListener("create-task", (e) => {
+      assertIsClass(e, CreateTaskEvent);
+      // Clone the task to prevent error:
+      // InvalidStateError: An attempt was made to use an object that is not, or is no longer, usable
+      this.elems.assignmentCenter.dispatchEvent(new CreateTaskEvent(e.task));
+      e.stopPropagation();
+    });
 
     const newTaskBtn = document.createElement("button");
     newTaskBtn.textContent = "New task";
     newTaskBtn.slot = "show-modal";
-    newTaskBtn.addEventListener("click", (_) => taskEditor.showModal());
+    newTaskBtn.addEventListener("click", () => taskEditor.showModal());
 
     const div = document.createElement("div");
     div.append(newTaskBtn, taskEditor);

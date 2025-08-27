@@ -1,9 +1,11 @@
+/** @import { Assignment } from "../assignment.js" */
+
 /**
  * An event that indicates that an assignment has changes that should be applied.
  *
  * Dispatched from a child of <assignment-center>, and handled by <assignment-center>.
  */
-class ChangeAssignmentEvent extends Event {
+export default class ChangeAssignmentEvent extends Event {
   /**
    * The assignment or task id.
    * @type {number}
@@ -11,13 +13,13 @@ class ChangeAssignmentEvent extends Event {
   id;
   /** @type {boolean} */
   isTask;
-  /** @type {Assignment} */
+  /** @type {Partial<Assignment?>} */
   changes;
 
   constructor(
     /** @type {number} */ id,
     /** @type {boolean} */ isTask,
-    /** @type {Assignment} */ changes,
+    /** @type {Partial<Assignment?>} */ changes,
   ) {
     super("change-assignment", { bubbles: true, composed: true });
     this.id = id;

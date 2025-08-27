@@ -1,6 +1,33 @@
-class AssignmentPopup extends HTMLElement {
+import Calendar from "/src/util/Calendar.util.js";
+import { NonNull } from "/src/util/NonNull.js";
+
+import AssignmentUtil from "./assignment.js";
+import ChangeAssignmentEvent from "./events/ChangeAssignmentEvent.js";
+
+/** @import { Assignment, Status } from "./assignment.js"; */
+
+export default class AssignmentPopup extends HTMLElement {
   /** @type {Assignment} */
   assignment;
+
+  /** @type {HTMLButtonElement} */
+  #statusBtn;
+  /** @type {HTMLButtonElement} */
+  #submitBtn;
+  /** @type {HTMLButtonElement} */
+  #deleteBtn;
+
+  /** @type {HTMLElement} */
+  #title;
+  /** @type {HTMLElement} */
+  #desc;
+  /** @type {HTMLElement} */
+  #class;
+
+  /** @type {HTMLElement} */
+  #attachments;
+  /** @type {HTMLUListElement} */
+  #attachmentsList;
 
   constructor(/** @type {Assignment} */ assignment) {
     super();
@@ -24,12 +51,13 @@ class AssignmentPopup extends HTMLElement {
 
       // Don't use selection.containsNode() b/c it doesn't work w/ shadow roots
       let selected =
-        root.contains(selection.anchorNode) ||
-        root.contains(selection.focusNode) ||
-        selection.anchorNode?.contains(root) ||
-        selection.focusNode?.contains(root);
+        selection != null &&
+        (root.contains(selection.anchorNode) ||
+          root.contains(selection.focusNode) ||
+          selection.anchorNode?.contains(root) ||
+          selection.focusNode?.contains(root));
 
-      const selectionHasText = selection.toString() != "";
+      const selectionHasText = selection?.toString() != "";
 
       if (selected && selectionHasText)
         this.classList.add("contains-selection");
@@ -43,39 +71,42 @@ class AssignmentPopup extends HTMLElement {
     const statusBtn = document.createElement("button");
     statusBtn.id = "status-btn";
     statusBtn.addEventListener("click", this.#handleChangeStatus.bind(this));
+    this.#statusBtn = statusBtn;
     const submitBtn = document.createElement("button");
     submitBtn.id = "submit-btn";
     submitBtn.addEventListener("click", this.#handleSubmit.bind(this));
+    this.#submitBtn = statusBtn;
     const deleteBtn = document.createElement("button");
     deleteBtn.id = "delete-btn";
     deleteBtn.addEventListener("click", this.#handleDelete.bind(this));
+    this.#deleteBtn = statusBtn;
 
     actionsMenu.append(statusBtn, submitBtn, deleteBtn);
     root.appendChild(actionsMenu);
 
     // assignment title
-    const titleElem = document.createElement("h2");
-    titleElem.id = "title";
-    root.appendChild(titleElem);
+    this.#title = document.createElement("h2");
+    this.#title.id = "title";
+    root.appendChild(this.#title);
 
     // assignment description
-    const descElem = document.createElement("div");
-    descElem.id = "desc";
-    root.appendChild(descElem);
+    this.#desc = document.createElement("div");
+    this.#desc.id = "desc";
+    root.appendChild(this.#desc);
 
     // assignment attachments
-    const attachments = document.createElement("aside");
-    attachments.id = "attachments";
+    this.#attachments = document.createElement("aside");
+    this.#attachments.id = "attachments";
     const attachmentsHeading = document.createElement("h3");
     attachmentsHeading.textContent = "Attachments";
-    const attachmentsElem = document.createElement("ul");
-    attachments.append(attachmentsHeading, attachmentsElem);
-    root.appendChild(attachments);
+    this.#attachmentsList = document.createElement("ul");
+    this.#attachments.append(attachmentsHeading, this.#attachmentsList);
+    root.appendChild(this.#attachments);
 
     // class name
-    const className = document.createElement("p");
-    className.id = "class-name";
-    root.appendChild(className);
+    this.#class = document.createElement("p");
+    this.#class.id = "class-name";
+    root.appendChild(this.#class);
 
     shadow.appendChild(root);
   }
@@ -85,19 +116,17 @@ class AssignmentPopup extends HTMLElement {
   }
 
   #hydrateStatus() {
-    const statusBtn = this.shadowRoot.getElementById("status-btn");
-    statusBtn.textContent = "Mark as ";
-    if (this.#nextStatus() == null) statusBtn.hidden = true;
-    else statusBtn.textContent += this.#nextStatus();
+    this.#statusBtn.textContent = "Mark as ";
+    if (this.#nextStatus() == null) this.#statusBtn.hidden = true;
+    else this.#statusBtn.textContent += this.#nextStatus();
   }
 
   #hydrateSubmitBtn() {
-    const submitBtn = this.shadowRoot.getElementById("submit-btn");
     if (
       this.assignment.isTask ||
-      !Assignment.requiresSubmission(this.assignment)
+      !AssignmentUtil.requiresSubmission(this.assignment)
     ) {
-      submitBtn.hidden = true;
+      this.#submitBtn.hidden = true;
     } else {
       let txt = "Submit";
       // special cases for submission methods
@@ -110,35 +139,30 @@ class AssignmentPopup extends HTMLElement {
           break;
       }
 
-      submitBtn.textContent = txt;
-      submitBtn.hidden = false;
+      this.#submitBtn.textContent = txt;
+      this.#submitBtn.hidden = false;
     }
   }
 
   #hydrateDeleteBtn() {
-    const deleteBtn = this.shadowRoot.getElementById("delete-btn");
-    if (!this.assignment.isTask) deleteBtn.hidden = true;
-    deleteBtn.textContent = "Delete task";
+    if (!this.assignment.isTask) this.#deleteBtn.hidden = true;
+    this.#deleteBtn.textContent = "Delete task";
   }
 
   #hydrateTitle() {
-    const titleElem = this.shadowRoot.getElementById("title");
-    titleElem.innerHTML = this.assignment.title;
+    this.#title.innerHTML = this.assignment.title;
   }
 
   #hydrateDescription() {
     // get assignment description, if available
-    const descElem = this.shadowRoot.getElementById("desc");
     // do NOT escape, b/c this content is taken directly from the innerHTML
     // of the full description page
-    descElem.innerHTML = this.#getDesc();
+    this.#desc.innerHTML = this.#getDesc();
   }
 
   #hydrateAttachments() {
-    const attachmentsElem = this.shadowRoot.getElementById("attachments");
-    const attachmentsList = attachmentsElem.querySelector("ul");
     const lis = this.assignment.attachments?.map((attachment) => {
-      const existing = attachmentsList.querySelector(
+      const existing = this.#attachmentsList.querySelector(
         `[data-attachment-url="${attachment.url}"]`,
       );
       if (existing != null) return existing;
@@ -156,16 +180,16 @@ class AssignmentPopup extends HTMLElement {
       return li;
     });
     if (lis != null && lis.length > 0) {
-      attachmentsList.append(...lis);
-      attachmentsElem.style.display = "block";
-    } else attachmentsElem.style.display = "none";
+      this.#attachmentsList.append(...lis);
+      this.#attachments.style.display = "block";
+    } else this.#attachments.style.display = "none";
   }
 
   #hydrateClassName() {
-    this.shadowRoot.getElementById("class-name").textContent =
-      this.assignment.class.name;
+    this.#class.textContent = this.assignment.class.name;
   }
 
+  /** @param {Assignment} assignment */
   #updateAssignment(assignment) {
     this.assignment = assignment;
     this.#hydrateStatus();
@@ -179,8 +203,7 @@ class AssignmentPopup extends HTMLElement {
 
   /**
    * Dispatch an event to change the assignment.
-   * @param {Assignment} changes
-   */
+   * @param {Partial<Assignment?>} changes */
   #setAssignment(changes) {
     const event = new ChangeAssignmentEvent(
       this.assignment.id,
@@ -190,29 +213,30 @@ class AssignmentPopup extends HTMLElement {
     this.dispatchEvent(event);
   }
 
-  /** @param {Event} */
+  /** @param {Event} _e */
   #handleChangeStatus(_e) {
     this.#setAssignment({ status: this.#nextStatus() });
-    const statusBtn = this.shadowRoot.getElementById("status-btn");
-    statusBtn.blur();
+    this.#statusBtn.blur();
   }
 
-  /** @param {Event} */
+  /** @param {Event} _e */
   #handleSubmit(_e) {
     if (this.assignment.isTask) {
-      alert("Cannot submit to a custom task.");
+      alert(
+        "Cannot submit to a custom task.\n\nThis is a bug. If this is shown, please report it.",
+      );
     } else {
-      window.location.assign(this.assignment.link);
+      window.location.assign(NonNull(this.assignment.link));
     }
   }
 
-  /** @param {Event} */
+  /** @param {Event} _e */
   #handleDelete(_e) {
     if (this.assignment.isTask) {
       this.#setAssignment(null);
     } else {
       alert(
-        "Sorry, you're gonna have to do it. (You can't delete an assignment.)",
+        "Sorry, you're gonna have to do it. (You can't delete an assignment.)\n\nThis is a bug. If this is shown, please report it.",
       );
     }
   }
@@ -226,7 +250,7 @@ class AssignmentPopup extends HTMLElement {
     else return rawDesc;
   }
 
-  /** @returns {Status?} The status to toggle to, or null if the status should not be toggled. */
+  /** @returns {Status|undefined} The status to toggle to, or null if the status should not be toggled. */
   #nextStatus() {
     switch (this.assignment.status) {
       case "Overdue":
@@ -242,7 +266,7 @@ class AssignmentPopup extends HTMLElement {
           return "Overdue";
         else return "To do";
       default:
-        return null;
+        return undefined;
     }
   }
 

@@ -1,6 +1,10 @@
+import { waitForElem } from "../content-scripts/common.js";
+
+/** **SAFETY**: Must be called after the site header is loaded. */
 const getHeaderHeight = () => {
+  // Okay to not `waitForElem` b/c this is only called after the page is loaded.
   const header = document.getElementById("site-header-parent-container");
-  const subheadings = Array.from(header.children);
+  const subheadings = Array.from(header?.children ?? []);
   const heights = subheadings.map(
     (subheading) => subheading.getBoundingClientRect().height,
   );
@@ -9,7 +13,7 @@ const getHeaderHeight = () => {
   return totalHeight;
 };
 
-const resizeHeaderSpacer = async () => {
+export const resizeHeaderSpacer = async () => {
   // set new height for spacer
   // the spacer determines the amount of space the full header takes up
   const spacerElem = await waitForElem("#site-top-spacer");
@@ -18,5 +22,9 @@ const resizeHeaderSpacer = async () => {
 
   // The line height is set to be too big, extending the element too far down and blocking clicks
   const logo = await waitForElem("#site-logo");
+  if (logo == null) {
+    console.warn("Site logo not found. Can't adjust size.");
+    return;
+  }
   logo.style.lineHeight = "initial";
 };

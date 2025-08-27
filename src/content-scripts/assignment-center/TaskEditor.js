@@ -1,3 +1,14 @@
+/** @import { Assignment } from "./assignment.js" */
+
+import api from "/src/util/api.js";
+import { assertHTMLElem } from "/src/util/assertHtmlElem.js";
+import Calendar from "/src/util/Calendar.util.js";
+import { NonNull } from "/src/util/NonNull.js";
+
+import { getStudentUserId } from "../student-user-id.js";
+
+import CreateTaskEvent from "./events/CreateTaskEvent.js";
+
 const PLACEHOLDERS = [
   "Complain about admin",
   "Procrastinate the FLE",
@@ -23,13 +34,27 @@ const randomPlaceholder = () =>
  * @property {string} DueDate
  * @property {string} ShortDescription
  * @property {number} TaskStatus
- * @property {string} UserId
- * @property {string} UserTaskId
+ * @property {string?} SectionId
+ * @property {string?} UserId
+ * @property {number?} UserTaskId
  */
 
-class TaskEditor extends HTMLElement {
+export default class TaskEditor extends HTMLElement {
   /** @type {Assignment?} */
   #task;
+
+  /**
+   * @typedef {Object} TaskEditorElems
+   * @prop {HTMLInputElement} title
+   * @prop {HTMLDialogElement} modal
+   * @prop {HTMLButtonElement} cancel
+   * @prop {HTMLFormElement} form
+   * @prop {HTMLSelectElement} classSelect
+   * @prop {HTMLInputElement} id
+   * @prop {HTMLInputElement} dueDate */
+
+  /** @type {TaskEditorElems} */
+  #elems;
 
   /** @type {(assignment: Assignment) => void} */
   updateAssignment;
@@ -63,15 +88,35 @@ class TaskEditor extends HTMLElement {
     </label>
     <label>
       Due Date
-      <input required id="dueDate" type="date" name="dueDate">
+      <input required id="due-date" type="date" name="dueDate">
     </label>
     <div id="btns">
       <button type="submit" id="save" value="Save">Save</button>
       <button type="button" id="cancel">Cancel</button>
     </div>
   </form>
-</dialog>
-`;
+</dialog>`;
+
+    /** @type {{[key in keyof TaskEditorElems]: string}} */
+    const ids = {
+      title: "title",
+      modal: "modal",
+      cancel: "cancel",
+      form: "task-form",
+      classSelect: "class-select",
+      id: "id",
+      dueDate: "due-date",
+    };
+    // Type cast b/c the element types don't line up
+    // This is essentially an object map
+    this.#elems = /** @type {TaskEditorElems} */ (
+      Object.fromEntries(
+        Object.entries(ids).map(([k, id]) => [
+          k,
+          NonNull(assertHTMLElem(shadow.getElementById(id))),
+        ]),
+      )
+    );
   }
 
   connectedCallback() {
@@ -82,6 +127,7 @@ class TaskEditor extends HTMLElement {
     this.#updateAssignment(this.#task);
   }
 
+  /** @param {Assignment?} assignment */
   #updateAssignment(assignment) {
     this.#task = assignment;
 
@@ -96,19 +142,18 @@ class TaskEditor extends HTMLElement {
     // closing the new task dialog and reopening it. So refresh it here.
     this.#refreshDueDate();
 
-    this.shadowRoot.getElementById("title").placeholder = randomPlaceholder();
-    this.shadowRoot.getElementById("modal").showModal();
+    this.#elems.title.placeholder = randomPlaceholder();
+    this.#elems.modal.showModal();
   }
 
   async #addClassesToSelect() {
-    const classSelect = this.shadowRoot.getElementById("class-select");
     try {
       const classes = await api.getClasses();
       for (const [id, name] of classes.entries()) {
         const option = document.createElement("option");
-        option.value = id;
+        option.value = String(id);
         option.textContent = name;
-        classSelect.appendChild(option);
+        this.#elems.classSelect.appendChild(option);
       }
       this.#refreshClassSelectSelectedOption();
     } catch (err) {
@@ -117,50 +162,56 @@ class TaskEditor extends HTMLElement {
   }
 
   #refreshId() {
-    this.shadowRoot.getElementById("id").value = this.#task?.id ?? "";
+    this.#elems.id.value = String(this.#task?.id ?? "");
   }
 
   #refreshTitle() {
-    this.shadowRoot.getElementById("title").value = this.#task?.title ?? "";
+    this.#elems.title.value = this.#task?.title ?? "";
   }
 
   #refreshDueDate() {
-    this.shadowRoot.getElementById("dueDate").value = Calendar.asInputValue(
+    this.#elems.dueDate.value = Calendar.asInputValue(
       this.#task?.dueDate ?? Calendar.nextWeekday(),
     );
   }
 
   #refreshClassSelectSelectedOption() {
-    const classSelect = this.shadowRoot.getElementById("class-select");
-    for (const option of classSelect.querySelectorAll("option")) {
+    const options = Array.from(
+      this.#elems.classSelect.querySelectorAll("option"),
+    );
+    for (const option of options) {
       const shouldSelect = option.value === String(this.#task?.class.id);
       option.selected = shouldSelect;
     }
   }
 
   #hydrateFormSubmit() {
-    /** @type {HTMLFormElement} */
-    const form = this.shadowRoot.getElementById("task-form");
-
-    /** @type {HTMLDialogElement} */
-    const modal = this.shadowRoot.getElementById("modal");
-    modal.addEventListener("close", async (e) => {
-      if (modal.returnValue === "Save") {
+    this.#elems.modal.addEventListener("close", async () => {
+      if (this.#elems.modal.returnValue === "Save") {
         // create task
-        const formData = new FormData(form);
-        const taskRaw = Object.fromEntries(Array.from(formData));
+        const formData = new FormData(this.#elems.form);
+        const taskRaw = Object.fromEntries(
+          // This works, but typescript doesn't think FormData is iterable
+          // See <https://stackoverflow.com/a/57714704/>
+          Array.from(/** @type {any} */ (formData)),
+        );
         const dueDate = `${Calendar.asBlackbaudDate(
           Calendar.fromInputValue(taskRaw.dueDate),
         )} 8:08 AM`;
+        const status =
+          this.#task?.status != undefined
+            ? api.statusNumMap[this.#task.status]
+            : -1;
+        /** @type {BlackbaudTask} */
         const task = {
           // Use the same value b/c that's how Blackbaud does it
           AssignedDate: dueDate,
           DueDate: dueDate,
           ShortDescription: taskRaw.title,
-          TaskStatus: api.statusNumMap[this.#task?.status] ?? -1,
+          TaskStatus: status,
           SectionId: taskRaw.class,
           UserId: await getStudentUserId(),
-          UserTaskId: taskRaw.id === "" ? undefined : Number(taskRaw.id),
+          UserTaskId: taskRaw.id === "" ? null : Number(taskRaw.id),
         };
         this.#addTask(task);
       }
@@ -168,16 +219,14 @@ class TaskEditor extends HTMLElement {
       // If the task isn't null, resetting will make the editor blank the next
       // time it's opened (when it should be showing the task)
       // ie only reset for the new task form
-      if (this.#task == null) form.reset();
+      if (this.#task == null) this.#elems.form.reset();
     });
   }
 
   #hydrateCancel() {
-    this.shadowRoot
-      .getElementById("cancel")
-      .addEventListener("click", (e) =>
-        this.shadowRoot.getElementById("modal").close("Cancel"),
-      );
+    this.#elems.cancel.addEventListener("click", () =>
+      this.#elems.modal.close("Cancel"),
+    );
   }
 
   /**

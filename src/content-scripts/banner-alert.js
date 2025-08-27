@@ -1,13 +1,16 @@
+import { createOrionMain } from "./assignment-center/create-orion-main.js";
+import { promiseError } from "./common.js";
+
 const bannersWrapper = document.createElement("div");
-bannersWrapper.attachShadow({ mode: "open" });
+const bannersWrapperShadowRoot = bannersWrapper.attachShadow({ mode: "open" });
 
 // For dark reader, put in shadow root
 const banners = document.createElement("div");
-bannersWrapper.shadowRoot.appendChild(banners);
+bannersWrapperShadowRoot.appendChild(banners);
 banners.id = "banners";
 
 const style = document.createElement("style");
-bannersWrapper.shadowRoot.appendChild(style);
+bannersWrapperShadowRoot.appendChild(style);
 style.innerHTML = `
   #banners {
     background-color: #111;
@@ -30,7 +33,7 @@ promiseError(async () => {
   root.prepend(bannersWrapper);
 })();
 
-class BannerAlert extends HTMLElement {
+export class BannerAlert extends HTMLElement {
   /** @returns {BannerAlert} */
   static createBanner(
     /** @type {string} */ message,
@@ -57,18 +60,18 @@ class BannerAlert extends HTMLElement {
     super();
     this.close = this.#close;
 
-    this.attachShadow({ mode: "open" });
+    const shadowRoot = this.attachShadow({ mode: "open" });
     // Prevent blackbaud from throwing a fit in the console
-    this.shadowRoot.addEventListener("click", (e) => e.stopPropagation());
-    this.shadowRoot.addEventListener("mousedown", (e) => e.stopPropagation());
+    shadowRoot.addEventListener("click", (e) => e.stopPropagation());
+    shadowRoot.addEventListener("mousedown", (e) => e.stopPropagation());
 
     const style = document.createElement("style");
     style.innerHTML = BannerAlert.#stylesheet;
-    this.shadowRoot.appendChild(style);
+    shadowRoot.appendChild(style);
 
     this.#wrapper = document.createElement("div");
     this.#wrapper.id = "wrapper";
-    this.shadowRoot.appendChild(this.#wrapper);
+    shadowRoot.appendChild(this.#wrapper);
 
     this.#message = document.createElement("span");
     this.#wrapper.appendChild(this.#message);
@@ -89,12 +92,12 @@ class BannerAlert extends HTMLElement {
     this.#wrapper.classList.add(type ?? "info");
 
     // Load message
-    const message = this.getAttribute("message");
+    const message = this.getAttribute("message") ?? "";
     this.#message.innerHTML = message;
 
     // Actions
     /** @type {Action[]} */
-    const actions = JSON.parse(this.getAttribute("actions")) || [];
+    const actions = JSON.parse(this.getAttribute("actions") ?? "[]");
     for (const action of actions) {
       const btn = document.createElement("button");
       btn.innerHTML = action.displayText;
@@ -152,6 +155,7 @@ class BannerAlert extends HTMLElement {
    */
 
   static ActionEvent = class extends Event {
+    /** @param {string} name */
     constructor(name) {
       super(`banner-alert-action-${name}`);
     }

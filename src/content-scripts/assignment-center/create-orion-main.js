@@ -1,8 +1,13 @@
+import { NonNull } from "/src/util/NonNull.js";
+
+import { settings, waitForElem } from "../common.js";
+
 /**
  * Returns the #orion-main element, or creates it if it doesn't exist.
+ * @param {HTMLElement?} sibling
  * @returns {Promise<HTMLElement>}
  */
-const createOrionMain = async (parent) => {
+export const createOrionMain = async (sibling = null) => {
   let orionMain = document.getElementById("orion-main");
 
   if (orionMain == null) {
@@ -13,11 +18,12 @@ const createOrionMain = async (parent) => {
     const s = await settings();
     orionMain.style.filter = `saturate(${s.assignmentCenter.customUi.saturation})`;
 
-    if (parent == null) {
+    if (sibling == null) {
       console.log("Waiting for assignment center...");
-      parent = await waitForElem("app-student-assignment-center", null);
+      sibling = await waitForElem("app-student-assignment-center", null);
     }
-    parent.parentElement.prepend(orionMain);
+    // Always defined b/c it's not the root elem
+    NonNull(sibling.parentElement).prepend(orionMain);
   }
 
   return orionMain;

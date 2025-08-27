@@ -1,3 +1,6 @@
+import { BannerAlert } from "./banner-alert";
+import { featureFlag, promiseError, waitForElems } from "./common";
+
 promiseError(
   featureFlag(
     (s) => s.keepWorking.clickAutomatically,
@@ -18,13 +21,16 @@ promiseError(
         // > button[keep working]
 
         // Search for a modal
-        const modalBtns = await waitForElems(
-          "sky-modal .sky-confirm-buttons button",
-          Infinity,
-          // Try not to hog resources.
-          // The interval can be somewhat low b/c if the keep working dialog pops
-          // up, they're probably not actively using the site anyways.
-          1000,
+        // SAFETY: query selects for button
+        const modalBtns = /** @type {NodeListOf<HTMLButtonElement>?} */ (
+          await waitForElems(
+            "sky-modal .sky-confirm-buttons button",
+            Infinity,
+            // Try not to hog resources.
+            // The interval can be somewhat low b/c if the keep working dialog pops
+            // up, they're probably not actively using the site anyways.
+            1000,
+          )
         );
 
         if (modalBtns == null) continue;

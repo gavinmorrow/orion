@@ -1,3 +1,8 @@
+import { ApiError } from "../util/api";
+import { assertIsError } from "../util/assertIsError";
+import { BannerAlert } from "./banner-alert";
+import { promiseError, VERSION } from "./common";
+
 /** @returns {Promise<string>} */
 const getLatestVersion = async () => {
   // Don't use Promise methods to avoid `InternalError: Promise rejection
@@ -15,6 +20,7 @@ const getLatestVersion = async () => {
       json.addons["{a58d637c-b5fb-4549-a2f6-ae76b6dd6672}"].updates;
     return versions[versions.length - 1].version;
   } catch (err) {
+    assertIsError(err);
     throw new ApiError("checkForUpdates", err);
   }
 };
@@ -43,6 +49,7 @@ const getIgnoredUpdates = async () =>
       type: "updateReminders.getIgnoredUpdates",
     }),
   );
+/** @param {string} data */
 const setIngoredUpdate = async (data) =>
   browser.runtime.sendMessage({ type: "updateReminders.ignoreUpdate", data });
 
