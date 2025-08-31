@@ -21,7 +21,7 @@
       "js": [
         "polyfill/browser-polyfill/browser-polyfill.min.js",
         "polyfill/custom-elements/custom-elements.min.js",
-        "src/content-scripts/assignment-center/assignment-center.js"
+        "src/content-scripts/assignment-center/index.js"
       ]
     },
     {
@@ -52,6 +52,12 @@
     {
       "matches": ["https://hunterschools.myschoolapp.com/*"],
       "js": ["src/content-scripts/tab-title.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": ["src/*"]
     }
   ],
   "browser_specific_settings": {
