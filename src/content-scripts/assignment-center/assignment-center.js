@@ -172,7 +172,7 @@ const assignmentCenterBroken = featureFlag(
   (s) => s.assignmentCenter.reloadOnBroken,
   async () => {
     const loggedIn = (await waitForElem("#site-logo", 2000)) != null;
-    const activeAssignments = !document.body.textContent.includes(
+    const activeAssignments = !document.body.textContent?.includes(
       "0 Active assignments",
     );
     if (!activeAssignments && !loggedIn) location.reload();

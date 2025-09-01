@@ -225,6 +225,10 @@ export default class AssignmentCenter extends HTMLElement {
   #createCalendarBoxDate(/** @type {Date} */ date) {
     const dateElem = document.createElement("p");
     dateElem.classList.add("calendar-date");
+
+    // Prove to typescript that `.textContent` is not null
+    dateElem.textContent = "";
+
     if (date.getDate() === 1) {
       dateElem.textContent =
         date.toLocaleString("default", {
@@ -232,6 +236,7 @@ export default class AssignmentCenter extends HTMLElement {
         }) + " ";
     }
     dateElem.textContent += date.getDate();
+
     return dateElem;
   }
 
@@ -384,14 +389,14 @@ export default class AssignmentCenter extends HTMLElement {
     }
   }
 
-  /** @param {Number} id @param {boolean} isTask @param {Partial<Assignment>} changes */
+  /** @param {Number} id @param {boolean} isTask @param {Partial<Assignment?>} changes */
   async #updateAssignment(id, isTask, changes) {
     try {
       // update internal object
       const index = this.assignments.findIndex((a) => a.id === id);
       if (index === -1) return;
       this.assignments[index] = /** @type {Assignment} */ (
-        applyDiff(this.assignments[index], changes)
+        applyDiff(this.assignments[index], changes ?? {})
       );
 
       // check for if the status in the backend needs to be updated
@@ -411,6 +416,7 @@ export default class AssignmentCenter extends HTMLElement {
         this.#hideDay(/** @type {0|1|2|3|4|5|6} */ (removed.dueDate.getDay()));
       } else {
         // otherwise, update the element corresponding to it
+        changes = NonNull(changes, "assignments cannot be deleted");
 
         // handle the due date changing (ie w/ tasks)
         if (changes.dueDate != undefined) {
