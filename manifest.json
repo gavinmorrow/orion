@@ -35,18 +35,7 @@
       "js": [
         "polyfill/browser-polyfill/browser-polyfill.min.js",
         "polyfill/custom-elements/custom-elements.min.js",
-        "src/content-scripts/common.js",
         "src/content-scripts/login-automatically.js"
-      ]
-    },
-    {
-      "matches": [
-        "https://hunterschools.myschoolapp.com/lms-assignment/assignment/*"
-      ],
-      "js": [
-        "polyfill/browser-polyfill/browser-polyfill.min.js",
-        "polyfill/custom-elements/custom-elements.min.js",
-        "src/content-scripts/common.js"
       ]
     },
     {
