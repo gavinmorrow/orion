@@ -40,7 +40,7 @@ const views = {
     const elem = await waitForElem(
       `[aria-label='Assignment center view'] [iconname='${viewIconNames[iconName]}'] input`,
     );
-    assertIsClass(elem, HTMLInputElement);
+    assertIsClass(elem, window.HTMLInputElement);
     return elem;
   },
 

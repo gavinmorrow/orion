@@ -17,7 +17,7 @@ const hunterLogin = featureFlag(
     const nextBtnSelector = "input[type='submit']#nextBtn";
     const usernameEntered = () => {
       const username = document.getElementById("Username");
-      if (username != null) assertIsClass(username, HTMLInputElement);
+      if (username != null) assertIsClass(username, window.HTMLInputElement);
       return username?.value.includes("@hunterschools.org");
     };
 
@@ -90,7 +90,7 @@ const googlePassword = featureFlag(
 
     const nextBtn = await waitFor(passwordNextBtn);
     if (nextBtn == null) return;
-    assertIsClass(nextBtn, HTMLButtonElement);
+    assertIsClass(nextBtn, window.HTMLButtonElement);
     nextBtn.click();
   }),
 );

@@ -250,7 +250,7 @@ export default class AssignmentCenter extends HTMLElement {
         // TODO: Don't completely rerender everything
         box.updateAssignment(assignment);
       } else {
-        assertIsClass(list, HTMLUListElement);
+        assertIsClass(list, window.HTMLUListElement);
         this.#insertAssignmentBox(list, assignment);
 
         // Eventually the description will be updated, just not immediately
@@ -424,7 +424,7 @@ export default class AssignmentCenter extends HTMLElement {
           NonNull(this.#findAssignmentBoxFor(id)).remove();
           // reparent, if the day is being shown
           if (list != null) {
-            assertIsClass(list, HTMLUListElement);
+            assertIsClass(list, window.HTMLUListElement);
             this.#insertAssignmentBox(list, this.assignments[index]);
           }
         }

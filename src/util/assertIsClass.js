@@ -1,5 +1,8 @@
 // Use V instead of any b/c it is more semantically correct.
 /**
+ * NOTE: For objects from another realm, make sure to take the class from that realm as well.
+ *       (e.g. use `window.HTMLInputElement` instead of `HTMLInputElement`.)
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof#instanceof_and_multiple_realms
  * @template V
  * @template T
  * @param {V} val
