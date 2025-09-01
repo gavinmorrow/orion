@@ -452,7 +452,7 @@ export default class AssignmentCenter extends HTMLElement {
    * @param {number} start How many days from today to start counting. Defaults to `1`.
    */
   #findSelectedDate(start = 1) {
-    const today = new Date();
+    const today = Calendar.resetDate(new Date());
     if (this.assignments.length === 0) return today;
     // eslint-disable-next-line no-constant-condition -- it reads nicer than a while loop
     for (let offset = start; true; offset += 1) {
