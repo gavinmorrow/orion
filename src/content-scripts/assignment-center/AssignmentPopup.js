@@ -266,6 +266,7 @@ export default class AssignmentPopup extends HTMLElement {
           return "Overdue";
         else return "To do";
       default:
+        console.warn(`Unknown status: ${this.assignment.status}`);
         return undefined;
     }
   }
