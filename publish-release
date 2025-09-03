@@ -18,22 +18,30 @@ echo "Copied files to ~/Desktop/orion"
 # Remove unwanted files/dirs
 rm -rf ~/Desktop/orion/.git
 rm -rf ~/Desktop/orion/.jj
+rm -rf ~/Desktop/orion/node_modules
 rm -rf ~/Desktop/orion/web-ext-artifacts
 rm ~/Desktop/orion/.amo-upload-uuid
+rm ~/Desktop/orion/.DS_Store
+rm ~/Desktop/orion/google282664880b33e538.html
+rm ~/Desktop/orion/package.json
+rm ~/Desktop/orion/package-lock.json
+rm ~/Desktop/orion/versions.json
 rm ~/Desktop/orion/publish-release
-echo "Removed git, jj, and amo files/dirs."
+echo "Removed git, jj, amo, and npm files/dirs."
 
 # zip it
 # See ditto man page (this is very similar to Finder compress function)
 ditto -c -k --sequesterRsrc --keepParent ~/Desktop/orion ~/Desktop/orion.zip
-rm -rf ~/Desktop/orion
 echo "Zipped into ~/Desktop/orion.zip"
 open ~/Desktop
 
 
 ### MDN release ###
 echo "Starting MDN release..."
+pushd ~/Desktop/orion
 web-ext sign --api-key=$MDN_AMO_API_KEY --api-secret=$MDN_AMO_API_SECRET --channel=unlisted
+popd
+cp "~/Desktop/orion/web-ext-artifacts/65a14653bc7c4e6ab617-$1.xpi" "./web-ext-artifacts/65a14653bc7c4e6ab617-$1.xpi"
 
 
 ### Github release ###
