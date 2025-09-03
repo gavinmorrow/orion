@@ -14,8 +14,6 @@ import { buttonStylesInner } from "../common.js";
 
 import AssignmentUtil from "./assignment.js";
 import AssignmentBox from "./AssignmentBox.js";
-import ChangeAssignmentEvent from "./events/ChangeAssignmentEvent.js";
-import CreateTaskEvent from "./events/CreateTaskEvent.js";
 import Task from "./Task.js";
 
 export default class AssignmentCenter extends HTMLElement {
@@ -81,12 +79,10 @@ export default class AssignmentCenter extends HTMLElement {
     this.extendCalendarGrid = this.#extendCalendarGrid.bind(this);
 
     this.addEventListener("change-assignment", (e) => {
-      assertIsClass(e, ChangeAssignmentEvent);
       this.#updateAssignment(e.id, e.isTask, e.changes).catch(reportError);
       e.stopPropagation();
     });
     this.addEventListener("create-task", (e) => {
-      assertIsClass(e, CreateTaskEvent);
       this.#addTask(e.task).catch(reportError);
       e.stopPropagation();
     });

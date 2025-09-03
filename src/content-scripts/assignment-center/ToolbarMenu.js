@@ -102,7 +102,6 @@ export default class ToolbarMenu extends HTMLElement {
   #createTaskEditor() {
     const taskEditor = new TaskEditor(null);
     taskEditor.addEventListener("create-task", (e) => {
-      assertIsClass(e, CreateTaskEvent);
       // Clone the task to prevent error:
       // InvalidStateError: An attempt was made to use an object that is not, or is no longer, usable
       this.elems.assignmentCenter.dispatchEvent(new CreateTaskEvent(e.task));
