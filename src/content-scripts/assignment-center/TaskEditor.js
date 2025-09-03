@@ -243,10 +243,17 @@ input, select {
   border: 1px solid transparent;
   max-width: 100%;
 }
-:invalid {
-  border-color: red;
+/* :user-invalid became baseline in 2023, so check if it exists first */
+@supports not selector(:user-invalid) {
+  :invalid {
+    border-color: red;
+  }
 }
-
+@supports selector(:user-invalid) {
+  :user-invalid {
+    border-color: red;
+  }
+}
 #title, #class-select {
   width: 40ch;
 }
