@@ -75,11 +75,11 @@ export default class AssignmentPopup extends HTMLElement {
     const submitBtn = document.createElement("button");
     submitBtn.id = "submit-btn";
     submitBtn.addEventListener("click", this.#handleSubmit.bind(this));
-    this.#submitBtn = statusBtn;
+    this.#submitBtn = submitBtn;
     const deleteBtn = document.createElement("button");
     deleteBtn.id = "delete-btn";
     deleteBtn.addEventListener("click", this.#handleDelete.bind(this));
-    this.#deleteBtn = statusBtn;
+    this.#deleteBtn = deleteBtn;
 
     actionsMenu.append(statusBtn, submitBtn, deleteBtn);
     root.appendChild(actionsMenu);
