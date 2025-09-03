@@ -6,9 +6,8 @@
     "checkJs": true,
     "lib": ["ES2023", "DOM"],
     "target": "es2023",
-    // Using node20 instead of es2023 b/c it makes imports include the `.js`
-    "module": "node20",
-    "allowUmdGlobalAccess": true
+    "module": "es2022",
+    "moduleResolution": "node16",
     "strict": true,
     // Allows for absolute imports instead of always relative
     // See <https://stackoverflow.com/a/55918656/15920018> (2025-08-28)
