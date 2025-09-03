@@ -40,7 +40,7 @@
     },
     {
       "matches": ["https://hunterschools.myschoolapp.com/*"],
-      "js": ["src/content-scripts/tab-title.js"]
+      "js": ["src/content-scripts/tab-title/index.js"]
     }
   ],
   "web_accessible_resources": [

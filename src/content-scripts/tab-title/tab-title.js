@@ -1,3 +1,5 @@
+import { promiseError, waitFor, waitForElem } from "../common.js";
+
 const getTabTitle = async () => {
   const url = location.href;
   console.log("Setting title for", url);
