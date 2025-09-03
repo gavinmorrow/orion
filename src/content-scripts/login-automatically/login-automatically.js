@@ -3,7 +3,7 @@
 
 import { assertIsClass } from "/src/util/assertIsClass.js";
 
-import { featureFlag, promiseError, waitFor, waitForElem } from "./common.js";
+import { featureFlag, promiseError, waitFor, waitForElem } from "../common.js";
 
 console.log("Logging in automatically...");
 

@@ -35,7 +35,7 @@
       "js": [
         "polyfill/browser-polyfill/browser-polyfill.min.js",
         "polyfill/custom-elements/custom-elements.min.js",
-        "src/content-scripts/login-automatically.js"
+        "src/content-scripts/login-automatically/index.js"
       ]
     },
     {
