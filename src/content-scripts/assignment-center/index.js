@@ -1,7 +1,5 @@
-(async () => {
-  await import(
-    browser.runtime.getURL(
-      "/src/content-scripts/assignment-center/assignment-center.js",
-    )
-  );
-})();
+import(
+  browser.runtime.getURL(
+    "/src/content-scripts/assignment-center/assignment-center.js",
+  )
+);
