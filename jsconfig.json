@@ -15,11 +15,9 @@
     "baseUrl": "./",
     "paths": {
       // Make absolute paths start with `/`, so browsers treat them as absolute
-      "/*": [
-        "./*"
-      ]
-    }
+      "/*": ["./*"],
+    },
   },
 
-  "include": ["src/**/*", "polyfill/**/*"]
+  "include": ["src/**/*", "polyfill/**/*"],
 }
