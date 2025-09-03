@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.7.0
+
+_released 02 September 2025_
+
+Welcome to the 2025-26 school year! With the new year comes a major refactor and
+a handful of bug fixes. This release may not look like much, but I've added a
+lot of typechecking and linting under the hood to make sure I'm less likely to
+introduce bugs when making changes.
+
+(Ironically, in the process of doing that, I may have introduced some bugs that
+will need to be ironed out. I won't be able to do that until some assignments
+are posted, so stay tuned for a v0.7.1 and report all bugs!)
+
+- Improvements:
+  - The task editor no longer complains about an empty title when you first open
+    it. (It will still complain if you try to create a task without a title, or
+    click into the title input and then click out. Everybody say thank you to
+    `:user-invaid`.)
+- Bug Fixes:
+  - Adopted to changes Blackbaud made over the summer.
+  - Fix a crash when there are no assignments posted. (I think this has existed
+    for quite a while, but I didn't notice because I made this after assignments
+    had already been posted.)
+
 ## v0.6.1
 
 _released 05 June 2025_
