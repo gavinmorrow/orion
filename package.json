@@ -15,6 +15,7 @@
   "homepage": "https://gavinmorrow.github.io/orion",
   "devDependencies": {
     "@eslint/js": "^9.34.0",
+    "@types/webextension-polyfill": "^0.12.3",
     "@typescript-eslint/parser": "^8.41.0",
     "eslint": "^9.34.0",
     "eslint-import-resolver-typescript": "^4.4.4",
