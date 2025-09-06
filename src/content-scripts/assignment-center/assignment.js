@@ -113,16 +113,19 @@ const Assignment = {
   // A seperate function so that `parse` can be non-async.
   /** @param {Assignment} a @returns {Promise<Assignment & { color: Color }>} */
   async addColor(a) {
+    console.debug("Adding color...");
     try {
       const apiColors = await api.getClassColors();
       let color = apiColors.get(Number(a.class.id));
 
       if (color == undefined) {
+        console.debug("Couldn't get color from API.");
         const htmlColors = await scrapeClassColors();
         color = htmlColors.get(a.class.name);
       }
 
       if (color == undefined) {
+        console.debug("Couldn't get color from HTML.");
         // Don't throw error because it's not serious enough to alert user.
         console.error(
           `Color for class ${a.class.id} (${a.class.name}) not found.`,

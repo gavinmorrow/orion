@@ -257,6 +257,7 @@ const api = {
         assignments.PastLastWeek,
         assignments.PastBeforeLastWeek,
       ).map((assignment) => {
+        console.debug("Parsing assignment...");
         if (assignment.UserTaskId !== 0) {
           return Task.addColor(Task.parse(assignment));
         } else {
@@ -331,9 +332,11 @@ export class ApiError extends Error {
     /** @type {number?} */
     let status = null;
 
+    console.debug("Wrapping fetch...");
     try {
       const res = await fetch;
       status = res.status;
+      console.debug("Fetched with status", status, res.ok);
 
       if (res.ok) return res;
       throw new Error(`api response not ok (${res.status})`);

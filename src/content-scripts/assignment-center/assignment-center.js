@@ -113,9 +113,12 @@ const hideLowerNavbar = featureFlag(
 );
 
 const createCustomUi = async () => {
+  console.debug("Creating custom ui...");
+
   // switch to list view, so scraping is possible
   views.switchTo("list");
 
+  console.debug("Waiting for old elem...");
   const oldElem = NonNull(await waitForElem("app-student-assignment-center"));
 
   try {
@@ -131,13 +134,16 @@ const createCustomUi = async () => {
     wrapper.append(toolbarMenu, assignmentCenter);
 
     // hide theirs
+    console.debug("Hiding old elem...");
     oldElem.hidden = true;
 
     const updateAssignments = async () => {
+      console.debug("Updating assignments...");
       try {
         const assignments = await api
           .getAllAssignmentData()
           .then(api.parseAssignments);
+        console.debug("Fetched assignments. Updating ui...");
         assignmentCenter.meshAssignmentsArray(assignments);
       } catch (err) {
         assertIsClass(err, Error);
@@ -223,6 +229,7 @@ promiseError(
       // needs to go first, bc everything else will fail if it is broken
       await assignmentCenterBroken();
 
+      console.debug("Hiding lower navbar...");
       // this should run regardless of whether or not the custom UI is enabled
       await hideLowerNavbar();
 
