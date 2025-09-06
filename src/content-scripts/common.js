@@ -67,9 +67,14 @@ export const waitFor = (
   /** @type {Timeout extends null ? Promise<T> : Promise<T|null>} */ (
     new Promise((resolve, _reject) => {
       // set timeout and interval
-      let timeoutId =
-        timeout !== null ? setTimeout(() => resolve(null), timeout) : undefined;
       let intervalId = setInterval(run, interval);
+      let timeoutId =
+        timeout !== null
+          ? setTimeout(() => {
+              clearInterval(intervalId);
+              resolve(null);
+            }, timeout)
+          : undefined;
 
       // run immediately to minimize delay if it's already ready
       run();
