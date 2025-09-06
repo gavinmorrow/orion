@@ -2,7 +2,7 @@
 
 ## v0.7.0
 
-_released 02 September 2025_
+_released 05 September 2025_
 
 Welcome to the 2025-26 school year! With the new year comes a major refactor and
 a handful of bug fixes. This release may not look like much, but I've added a
