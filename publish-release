@@ -25,7 +25,10 @@ rm ~/Desktop/orion/.DS_Store
 rm ~/Desktop/orion/google282664880b33e538.html
 rm ~/Desktop/orion/package.json
 rm ~/Desktop/orion/package-lock.json
+rm ~/Desktop/orion/eslint.config.js
+rm ~/Desktop/orion/jsconfig.json
 rm ~/Desktop/orion/versions.json
+rm ~/Desktop/orion/birthdays.json
 rm ~/Desktop/orion/publish-release
 echo "Removed git, jj, amo, and npm files/dirs."
 
