@@ -43,8 +43,9 @@ open ~/Desktop
 echo "Starting MDN release..."
 pushd ~/Desktop/orion
 web-ext sign --api-key=$MDN_AMO_API_KEY --api-secret=$MDN_AMO_API_SECRET --channel=unlisted
+cp "./web-ext-artifacts/65a14653bc7c4e6ab617-$1.xpi" ./web-ext-artifacts/65a14653bc7c4e6ab617.xpi
 popd
-cp "~/Desktop/orion/web-ext-artifacts/65a14653bc7c4e6ab617-$1.xpi" "./web-ext-artifacts/65a14653bc7c4e6ab617-$1.xpi"
+cp ~/Desktop/orion/web-ext-artifacts/65a14653bc7c4e6ab617.xpi "./web-ext-artifacts/65a14653bc7c4e6ab617-$1.xpi"
 
 
 ### Github release ###
