@@ -5,6 +5,7 @@ import { NonNull } from "/src/util/NonNull.js";
 import { reportError } from "/src/util/reportError.js";
 
 import { BannerAlert } from "../banner-alert.js";
+import checkForBdays from "../birthday.js";
 import {
   featureFlag,
   getAssignmentsCache,
@@ -242,6 +243,8 @@ promiseError(
         views.onChange(modifyView);
         await modifyView(NonNull(await views.currentView()));
       }
+
+      await checkForBdays();
     },
   ),
   reportError,

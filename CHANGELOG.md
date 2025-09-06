@@ -13,6 +13,8 @@ introduce bugs when making changes.
 will need to be ironed out. I won't be able to do that until some assignments
 are posted, so stay tuned for a v0.7.1 and report all bugs!)
 
+- Features:
+  - There's a surprise hidden in there. :] (sorry it's late)
 - Improvements:
   - The task editor no longer complains about an empty title when you first open
     it. (It will still complain if you try to create a task without a title, or
