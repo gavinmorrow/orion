@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.7.3
+
+_released 06 September 2025_
+
+- Bug Fixes:
+  - Okay sorry for this one. I forgot to bump the version number in one place so
+    the update notifier will just bug you incorrectly. idk how, bc I have a
+    whole checklist and everything?? somehow missed the step.
+
 ## v0.7.2
 
 _released 06 September 2025_
