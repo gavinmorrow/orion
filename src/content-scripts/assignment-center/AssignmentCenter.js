@@ -351,10 +351,15 @@ export default class AssignmentCenter extends HTMLElement {
 
   /** @param {Assignment[]} assignments */
   #meshAssignments(assignments) {
-    this.assignments = /** @type {Assignment[]} */ (
-      meshAssignmentsArray(this.assignments, assignments)
-    );
-    this.#hydrateCalendar();
+    if (this.assignments.length === 0) {
+      this.assignments = assignments;
+      this.#hydrateCalendar();
+    } else {
+      this.assignments = /** @type {Assignment[]} */ (
+        meshAssignmentsArray(this.assignments, assignments)
+      );
+      this.#hydrateCalendar();
+    }
   }
 
   // TODO: refactor
