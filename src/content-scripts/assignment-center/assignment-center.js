@@ -14,6 +14,7 @@ import {
   waitFor,
   waitForElem,
 } from "../common.js";
+import "../whats-new.js";
 
 import AssignmentCenter from "./AssignmentCenter.js";
 import { createOrionMain } from "./create-orion-main.js";

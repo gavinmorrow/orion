@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.7.1
+
+_released 05 September 2025_
+
+- Bug Fixes:
+  - Fix what's new not showing.
+
 ## v0.7.0
 
 _released 05 September 2025_

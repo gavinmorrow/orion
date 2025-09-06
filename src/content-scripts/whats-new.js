@@ -1,5 +1,5 @@
-import { BannerAlert } from "./banner-alert";
-import { promiseError, VERSION } from "./common";
+import { BannerAlert } from "./banner-alert.js";
+import { promiseError, VERSION } from "./common.js";
 
 const getViewedVersions = async () =>
   new Set(
