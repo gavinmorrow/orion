@@ -1,7 +1,8 @@
-import { ApiError } from "../util/api";
-import { assertIsError } from "../util/assertIsError";
-import { BannerAlert } from "./banner-alert";
-import { promiseError, VERSION } from "./common";
+import { ApiError } from "/src/util/api.js";
+import { assertIsClass } from "/src/util/assertIsClass.js";
+
+import { BannerAlert } from "./banner-alert.js";
+import { VERSION } from "./common.js";
 
 /** @returns {Promise<string>} */
 const getLatestVersion = async () => {
@@ -20,7 +21,7 @@ const getLatestVersion = async () => {
       json.addons["{a58d637c-b5fb-4549-a2f6-ae76b6dd6672}"].updates;
     return versions[versions.length - 1].version;
   } catch (err) {
-    assertIsError(err);
+    assertIsClass(err, Error);
     throw new ApiError("checkForUpdates", err);
   }
 };
@@ -53,7 +54,7 @@ const getIgnoredUpdates = async () =>
 const setIngoredUpdate = async (data) =>
   browser.runtime.sendMessage({ type: "updateReminders.ignoreUpdate", data });
 
-promiseError(async () => {
+export default async () => {
   // Don't use Promise methods to avoid `InternalError: Promise rejection
   // value is a non-unwrappable cross-compartment wrapper.`
   // (see <https://bugzilla.mozilla.org/show_bug.cgi?id=1871516>)
@@ -90,4 +91,4 @@ promiseError(async () => {
       if (ignoreUpdate) setIngoredUpdate(latest);
     });
   }
-}, reportError)();
+};

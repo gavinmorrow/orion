@@ -14,7 +14,8 @@ import {
   waitFor,
   waitForElem,
 } from "../common.js";
-import "../whats-new.js";
+import notifyUpdate from "../notify-update.js";
+import whatsNew from "../whats-new.js";
 
 import AssignmentCenter from "./AssignmentCenter.js";
 import { createOrionMain } from "./create-orion-main.js";
@@ -234,6 +235,9 @@ promiseError(
       console.debug("Hiding lower navbar...");
       // this should run regardless of whether or not the custom UI is enabled
       await hideLowerNavbar();
+
+      await whatsNew();
+      await notifyUpdate();
 
       if ((await settings()).assignmentCenter.customUi.enabled) {
         await createCustomUi();

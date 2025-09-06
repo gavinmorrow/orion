@@ -1,5 +1,5 @@
 import { BannerAlert } from "./banner-alert.js";
-import { promiseError, VERSION } from "./common.js";
+import { VERSION } from "./common.js";
 
 const getViewedVersions = async () =>
   new Set(
@@ -8,7 +8,7 @@ const getViewedVersions = async () =>
 const setVersionViewed = async (/** @type {string} */ data) =>
   browser.runtime.sendMessage({ type: "whatsNew.setVersionViewed", data });
 
-promiseError(async () => {
+export default async () => {
   /** @type {Set<string>} */
   const viewedVersions = await getViewedVersions();
   if (viewedVersions.has(VERSION)) {
@@ -43,4 +43,4 @@ promiseError(async () => {
   banner.addEventListener("banner-alert-close", () => {
     if (!remindLater) setVersionViewed(VERSION);
   });
-}, reportError)();
+};
