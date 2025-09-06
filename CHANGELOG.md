@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.7.2
+
+_released 06 September 2025_
+
+- Bug Fixes:
+  - Fix notify update not showing. (same issue as what's new lol)
+
 ## v0.7.1
 
 _released 05 September 2025_
