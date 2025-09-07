@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.7.4
+
+_released 00 September 2025_
+
+- Bug Fixes:
+  - Fixes some styling bugs in the toolbar.
+
 ## v0.7.3
 
 _released 06 September 2025_

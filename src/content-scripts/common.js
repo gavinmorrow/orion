@@ -269,6 +269,18 @@ export const buttonStylesInner = `
     --color-bg-root: #111;
     --color-bg-btn: oklch(from var(--color-bg-root) calc(l*120%) c h);
 
+    /* Pretty much all the styles get overridden. This gets rid of lingering
+     * font and height mismatches between <a>, <button> and slotted <button>s */
+    all: unset;
+    display: inline-block;
+    user-select: none;
+    -webkit-user-select: none;
+
+    all: unset;
+    display: inline-block;
+    user-select: none;
+    -webkit-user-select: none;
+
     background-color: var(--color-bg-btn);
     border: 1px solid var(--color-border);
     color: var(--color-text);
