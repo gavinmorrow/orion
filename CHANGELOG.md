@@ -6,6 +6,8 @@ _released 00 September 2025_
 
 - Bug Fixes:
   - Fixes some styling bugs in the toolbar.
+  - Assignment boxes keep their focus styling (lighter background color) when
+    the mouse is moved out of a popup kept open by selecting text.
 
 ## v0.7.3
 
