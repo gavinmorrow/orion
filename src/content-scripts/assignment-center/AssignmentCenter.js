@@ -221,6 +221,11 @@ export default class AssignmentCenter extends HTMLElement {
   #createCalendarBoxDate(/** @type {Date} */ date) {
     const dateElem = document.createElement("p");
     dateElem.classList.add("calendar-date");
+    dateElem.title = date.toLocaleDateString("default", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
     // Prove to typescript that `.textContent` is not null
     dateElem.textContent = "";

@@ -4,6 +4,8 @@
 
 _released 00 September 2025_
 
+- Features:
+  - View the full date for a day by hovering over the number in the calendar.
 - Bug Fixes:
   - Fixes some styling bugs in the toolbar.
   - Assignment boxes keep their focus styling (lighter background color) when
