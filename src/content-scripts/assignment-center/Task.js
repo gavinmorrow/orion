@@ -64,6 +64,7 @@ const Task = {
       isTask: true,
       submissionMethod: null,
       attachments: [],
+      grade: { value: null, max: null },
     };
   },
 

@@ -26,6 +26,7 @@ import BlackbaudDate from "./BlackbaudDate.js";
  * @property {-1|0|1|2|4} TaskStatus (maybe make optional?) As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
  * @property {number} MaxPoints
  * @property {boolean} ExtraCredit
+ * @property {number?} MaxPoints
  */
 /**
  * @typedef {Object} BlackbaudAssignment
@@ -39,6 +40,7 @@ import BlackbaudDate from "./BlackbaudDate.js";
  *
  * @property {BlackbaudDownloadItem[]} DownloadItems
  * @property {BlackbaudLinkItem[]} LinkItems
+ * @property {{ GradebookGrade: number? }} AssignmentGrade
  */ // lots of other things too but i'm too lazy to list them, add more as needed
 /**
  * @typedef {Object} BlackbaudDownloadItem

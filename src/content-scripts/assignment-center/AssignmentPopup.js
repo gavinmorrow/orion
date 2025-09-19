@@ -16,6 +16,8 @@ export default class AssignmentPopup extends HTMLElement {
   #submitBtn;
   /** @type {HTMLButtonElement} */
   #deleteBtn;
+  /** @type {HTMLButtonElement} */
+  #gradedBtn;
 
   /** @type {HTMLElement} */
   #title;
@@ -80,8 +82,12 @@ export default class AssignmentPopup extends HTMLElement {
     deleteBtn.id = "delete-btn";
     deleteBtn.addEventListener("click", this.#handleDelete.bind(this));
     this.#deleteBtn = deleteBtn;
+    const gradedBtn = document.createElement("button");
+    gradedBtn.id = "gradedBtn";
+    gradedBtn.disabled = true;
+    this.#gradedBtn = gradedBtn;
 
-    actionsMenu.append(statusBtn, submitBtn, deleteBtn);
+    actionsMenu.append(statusBtn, submitBtn, deleteBtn, gradedBtn);
     root.appendChild(actionsMenu);
 
     // assignment title
@@ -149,6 +155,14 @@ export default class AssignmentPopup extends HTMLElement {
     this.#deleteBtn.textContent = "Delete task";
   }
 
+  #hydrateGradedBtn() {
+    if (this.assignment.status !== "Graded") this.#gradedBtn.hidden = true;
+    const value = this.assignment.grade.value?.toString() ?? "unknown";
+    const max = this.assignment.grade.max?.toString() ?? "unknown";
+
+    this.#gradedBtn.textContent = `Graded (${value} / ${max})`;
+  }
+
   #hydrateTitle() {
     this.#title.innerHTML = this.assignment.title;
   }
@@ -195,6 +209,7 @@ export default class AssignmentPopup extends HTMLElement {
     this.#hydrateStatus();
     this.#hydrateSubmitBtn();
     this.#hydrateDeleteBtn();
+    this.#hydrateGradedBtn();
     this.#hydrateTitle();
     this.#hydrateDescription();
     this.#hydrateAttachments();
@@ -265,6 +280,8 @@ export default class AssignmentPopup extends HTMLElement {
         )
           return "Overdue";
         else return "To do";
+      case "Graded":
+        return undefined;
       default:
         console.warn(`Unknown status: ${this.assignment.status}`);
         return undefined;

@@ -38,6 +38,9 @@ import { scrapeClassColors } from "./scrape-colors.js";
  * @property {boolean} isTask
  * @property {SubmissionMethod?} submissionMethod
  * @property {AssignmentAttachment[]} attachments Both download and link items.
+ * @property {object} grade
+ * @property {number?} grade.value
+ * @property {number?} grade.max
  */
 
 /**
@@ -81,6 +84,10 @@ const Assignment = {
         isTask: false,
         submissionMethod: null,
         attachments: [],
+        grade: {
+          value: null,
+          max: blackbaudRepr.MaxPoints ?? null,
+        },
       })
     );
   },
@@ -216,6 +223,9 @@ const Assignment = {
       submissionMethod:
         blackbaudRepr && Assignment.getSubmissionMethod(blackbaudRepr),
       attachments: Assignment.parseBlackbaudAttachments(blackbaudRepr),
+      grade: {
+        value: blackbaudRepr?.AssignmentGrade.GradebookGrade,
+      },
     };
   },
 
