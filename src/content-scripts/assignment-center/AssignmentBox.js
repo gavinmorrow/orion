@@ -114,6 +114,7 @@ export default class AssignmentBox extends HTMLElement {
       "requires-submission",
       this.#requiresSubmission(),
     );
+    conditionalClass(this.#root, "status-graded", this.#isGraded());
     conditionalClass(this.#root, "collapse", this.#shouldCollapse());
     conditionalClass(
       NonNull(this.#root.parentElement),
@@ -192,6 +193,10 @@ export default class AssignmentBox extends HTMLElement {
     return AssignmentUtil.requiresSubmission(this.assignment);
   }
 
+  #isGraded() {
+    return AssignmentUtil.isGraded(this.assignment);
+  }
+
   #shouldPopupLeft() {
     const leftEdge = this.getBoundingClientRect().left;
     const percentToEdge = leftEdge / window.innerWidth;
@@ -241,7 +246,8 @@ article {
 
     &.type-major          { --border-color: yellow; }
     &.requires-submission { --border-color: oklch(78% 0.17 214); }
-    &.type-major, &.requires-submission {
+    &.status-graded       { --border-color: oklch(78% 0.17 146); }
+    &.type-major, &.requires-submission, &.status-graded {
       --border-radius-class-color: var(--inner-border-width);
       --width-class-color: calc(var(--width-class-color-base) - var(--border-width));
       border: var(--border-width) solid var(--border-color);

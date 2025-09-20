@@ -301,6 +301,11 @@ const Assignment = {
   requiresSubmission(a) {
     return a.submissionMethod != null;
   },
+
+  /** @param {Assignment} a */
+  isGraded(a) {
+    return a.status === "Graded";
+  },
 };
 
 export default Assignment;
