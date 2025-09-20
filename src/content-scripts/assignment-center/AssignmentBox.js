@@ -1,4 +1,5 @@
 import { NonNull } from "/src/util/NonNull.js";
+import { trimHTML } from "/src/util/trimHTML.js";
 
 import { conditionalClass } from "../common.js";
 
@@ -135,6 +136,7 @@ export default class AssignmentBox extends HTMLElement {
     const titleElem = this.#link;
 
     titleElem.innerHTML = this.assignment.title;
+    trimHTML(titleElem);
     if (this.#shouldCollapse()) {
       // Force no line breaks
       titleElem.textContent = titleElem.textContent.replaceAll("\n", "");

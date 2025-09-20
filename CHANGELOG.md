@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.7.5
+
+_released 00 September 2025_
+
+- Features:
+  - Assignments that have titles that start or end with newlines will get those
+    trimmed. No more needless empty lines! (looking at you, $GUSH_TEACHER)
+
 ## v0.7.4
 
 _released 20 September 2025_

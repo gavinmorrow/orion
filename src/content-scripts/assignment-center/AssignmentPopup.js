@@ -1,5 +1,6 @@
 import Calendar from "/src/util/Calendar.util.js";
 import { NonNull } from "/src/util/NonNull.js";
+import { trimHTML } from "/src/util/trimHTML.js";
 
 import AssignmentUtil from "./assignment.js";
 import ChangeAssignmentEvent from "./events/ChangeAssignmentEvent.js";
@@ -165,6 +166,7 @@ export default class AssignmentPopup extends HTMLElement {
 
   #hydrateTitle() {
     this.#title.innerHTML = this.assignment.title;
+    trimHTML(this.#title);
   }
 
   #hydrateDescription() {
