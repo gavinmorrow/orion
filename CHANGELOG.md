@@ -2,11 +2,16 @@
 
 ## v0.7.4
 
-_released 00 September 2025_
+_released 20 September 2025_
 
 - Features:
   - View the full date for a day by hovering over the number in the calendar.
   - When an assignment is graded, the grade is shown in the assignment popup.
+    - NOTE: The default color of graded assignments has been changed to a
+            slightly lighter green than completed assignments. If you want to
+            restore the previous color, you can do so in settings.
+    - (Also, I'm not fully satisfied with the contrast of text w/ that color,
+       so if you have any suggestions for colors/how to fix that, tell me!!)
 - Bug Fixes:
   - Fixes some styling bugs in the toolbar.
   - Assignment boxes keep their focus styling (lighter background color) when

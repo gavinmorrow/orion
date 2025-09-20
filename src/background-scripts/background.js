@@ -1,4 +1,5 @@
 import meshObjects from "../util/meshObjects.js";
+
 import meshAssignmentsArray from "./mesh-assignments-array.js";
 
 ///================///
@@ -21,8 +22,8 @@ const defaultSettings = {
         // "To do": "oklch(42% 0.07 86)" /* yellow */,
         toDo: "oklch(42% 0.17 214)" /* blue */,
         inProgress: "oklch(42% 0.17 214)" /* blue */,
-        completed: "oklch(42% 0.17 146)" /* grey */,
-        graded: "oklch(42% 0.17 146)" /* green */,
+        completed: "oklch(42% 0.17 146)" /* green */,
+        graded: "oklch(55% 0.17 146)" /* light green */,
         missing: "oklch(42% 0.17 0)" /* red */,
         overdue: "oklch(42% 0.17 0)" /* red */,
       },
