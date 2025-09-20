@@ -187,6 +187,9 @@ export const [settings, updateSettingsCache] = memo(
 );
 
 /** Do a partial update of settings (only send what needs to be changed). */
+export const resetSettings = async () =>
+  browser.runtime.sendMessage({ type: "settings.set", data: {} });
+/** Do a partial update of settings (only send what needs to be changed). */
 export const updateSettings = async (
   /** @type {Partial<Settings>} */ partial,
 ) => browser.runtime.sendMessage({ type: "settings.update", data: partial });

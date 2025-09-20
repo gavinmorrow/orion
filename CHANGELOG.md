@@ -7,6 +7,7 @@ _released 00 September 2025_
 - Features:
   - Assignments that have titles that start or end with newlines will get those
     trimmed. No more needless empty lines! (looking at you, $GUSH_TEACHER)
+  - Add a button to reset all settings.
 - Improvements:
   - Graded assignments will have a green outline around them. The default
     background color for graded assignments is reverted to be the same as

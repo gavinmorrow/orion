@@ -4,6 +4,7 @@ import {
   buttonStylesInner,
   featureFlag,
   promiseError,
+  resetSettings,
   settings,
   updateSettings,
   updateSettingsCache,
@@ -99,6 +100,7 @@ export default class SettingsMenu extends HTMLElement {
 
     const modal = document.createElement("dialog");
     modal.id = "modal";
+    modal.append(this.#createResetToDefaultBtn());
     modal.append(...this.#createModalElements());
     shadow.appendChild(modal);
 
@@ -119,6 +121,29 @@ export default class SettingsMenu extends HTMLElement {
     // It's okay to leave the Promise hanging here, bc we don't need its
     // result. We're just doing it for the side effects.
     this.#hydrateModal();
+  }
+
+  /** @param {Promise<any>} promise */
+  #updateSettings(promise) {
+    promise.then(
+      (newSettings) => {
+        updateSettingsCache(newSettings);
+        this.#hydrateModal();
+        alert("Settings updated. Refresh the page.");
+        // FIXME: rest of the page doesn't dynamically update w/ settings change
+      },
+      (err) => {
+        alert("Error updating settings: " + err);
+        console.error("Error updating settings:", err);
+      },
+    );
+  }
+
+  #createResetToDefaultBtn() {
+    const btn = document.createElement("button");
+    btn.textContent = "Restore to defaults";
+    btn.addEventListener("click", () => this.#updateSettings(resetSettings()));
+    return btn;
   }
 
   #createModalElements() {
@@ -152,18 +177,7 @@ export default class SettingsMenu extends HTMLElement {
           const newValue =
             input.type === "checkbox" ? input.checked : input.value;
           const partial = this.#constructFromPath(newPath, newValue);
-          updateSettings(partial).then(
-            (newSettings) => {
-              updateSettingsCache(newSettings);
-              this.#hydrateModal();
-              alert("Settings updated. Refresh the page.");
-              // FIXME: rest of the page doesn't dynamically update w/ settings change
-            },
-            (err) => {
-              alert("Error updating settings: " + err);
-              console.error("Error updating settings:", err);
-            },
-          );
+          this.#updateSettings(updateSettings(partial));
         });
 
         label.append(nameElem, descElem, input);
