@@ -287,6 +287,15 @@
               "strict_min_version": "128"
             }
           }
+        },
+        {
+          "version": "0.7.5",
+          "update_link": "https://github.com/gavinmorrow/orion/releases/download/v0.7.5/65a14653bc7c4e6ab617.xpi",
+          "applications": {
+            "gecko": {
+              "strict_min_version": "128"
+            }
+          }
         }
       ]
     }

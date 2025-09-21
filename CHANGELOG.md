@@ -2,7 +2,7 @@
 
 ## v0.7.5
 
-_released 00 September 2025_
+_released 21 September 2025_
 
 - Features:
   - Assignments that have titles that start or end with newlines will get those
