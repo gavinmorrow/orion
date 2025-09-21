@@ -42,6 +42,7 @@ const defaultSettings = {
     },
     reloadOnBroken: true,
     hideLowerNavbar: true,
+    keyboardShortcut: true,
     statusColors: {
       todo: "blue",
       inProgress: "yellow",

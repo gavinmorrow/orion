@@ -149,6 +149,7 @@ export const waitForElems = async (
  * @property {boolean} assignmentCenter.enabled
  * @property {boolean} assignmentCenter.reloadOnBroken
  * @property {boolean} assignmentCenter.hideLowerNavbar
+ * @property {boolean} assignmentCenter.keyboardShortcut
  *
  * @property {Object} assignmentCenter.statusColors
  * @property {String} assignmentCenter.statusColors.todo

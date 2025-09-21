@@ -35,6 +35,8 @@ const settingsOptions = {
       reloadOnBroken:
         "Automatically reload the page when the assignment center is broken (ie blank).",
       hideLowerNavbar: "Hide the bottommost navigation bar (it's redundant).",
+      keyboardShortcut:
+        "Navigate to the assignment center when `alt-a` (or `option-a` on mac) is pressed.",
 
       customUi: {
         desc: "An entirely new (and significantly better) user interface for the assignment center!",

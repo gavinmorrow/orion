@@ -41,6 +41,10 @@
     {
       "matches": ["https://hunterschools.myschoolapp.com/*"],
       "js": ["src/content-scripts/tab-title/index.js"]
+    },
+    {
+      "matches": ["https://hunterschools.myschoolapp.com/*"],
+      "js": ["src/content-scripts/keyboard-shortcut/index.js"]
     }
   ],
   "web_accessible_resources": [
