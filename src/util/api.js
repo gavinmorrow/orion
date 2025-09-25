@@ -341,9 +341,12 @@ export class ApiError extends Error {
       console.debug("Fetched with status", status, res.ok);
 
       if (res.ok) return res;
-      throw new Error(`api response not ok (${res.status})`);
+      // Throw a `window` error so the type assert in the catch block works
+      throw new window.Error(`api response not ok (${res.status})`);
     } catch (err) {
-      assertIsClass(err, Error);
+      // Catch `window.Error` b/c any `NetworkError`s/etc from `fetch` will be
+      // from the `window` realm, not ours.
+      assertIsClass(err, window.Error);
       throw new ApiError(action, err, status === 403);
     }
   }
