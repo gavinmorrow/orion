@@ -1,6 +1,6 @@
 # Orion
 
-_v0.7.5_
+_v0.8.0_
 
 This project aims to fix as much of the Hunter website as possible. It does this
 through a browser extension. To report problems or request a feature, please
@@ -62,7 +62,7 @@ The source code for [this project][github] is available on github!
 
 [Full changelog]: https://gavinmorrow.github.io/orion/CHANGELOG
 [latest]: https://github.com/gavinmorrow/orion/releases/latest
-[firefox]: https://github.com/gavinmorrow/orion/releases/download/v0.7.5/65a14653bc7c4e6ab617.xpi
+[firefox]: https://github.com/gavinmorrow/orion/releases/download/v0.8.0/65a14653bc7c4e6ab617.xpi
 [chrome]: https://chromewebstore.google.com/detail/gdcpndjlfcnjjchcomdgkpkjncoacdlf
 [Mozilla help page]: https://support.mozilla.org/en-US/kb/how-update-add-ons
 [github]: https://github.com/gavinmorrow/orion/

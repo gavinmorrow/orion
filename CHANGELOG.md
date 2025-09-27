@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.8.0
+
+_released 06 November 2025_
+
+Big release! I got a bunch of papercuts from my todo list finished :D
+
+- Features:
+  - Add a refresh button to the toolbar to refresh all the data without
+    reloading the page.
+  - Add a button to the toolbar to submit feedback.
+- Improvements:
+  - The real link for the assignment box in the calendar view now fills the
+    whole box, so everywhere works with `cmd-`/`ctrl-click` to open in a new tab
+    (as opposed to just the text itself.)
+  - Assignments that are graded no longer show the submit button.
+  - The settings menu can be closed via a new close button, in addition to the
+    `<esc>` key.
+  - The assignment center should load slightly faster, since it starts loading
+    assignments before everything else is fully loaded.
+- Bug Fixes:
+  - Fix a rare and very minor bug involving errors when there is no WiFi on
+    page load.
+
 ## v0.7.5
 
 _released 21 September 2025_
