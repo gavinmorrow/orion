@@ -253,11 +253,20 @@ article {
       border: var(--border-width) solid var(--border-color);
     }
 
+    #title a {
+      /* Make it so you can click anywhere in the box to click the link. */
+      display: inline-block;
+      width: 100%;
+    }
     &.collapse #title {
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-
+      & a {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        /* Needed so that the height of the container does not increase. */
+        /* See <https://stackoverflow.com/questions/22421782/css-overflow-hidden-increases-height-of-container> */
+        vertical-align: bottom;
+      }
       & br {
         display: none;
       }
