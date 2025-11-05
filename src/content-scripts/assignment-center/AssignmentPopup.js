@@ -131,6 +131,7 @@ export default class AssignmentPopup extends HTMLElement {
   #hydrateSubmitBtn() {
     if (
       this.assignment.isTask ||
+      this.assignment.status === "Graded" ||
       !AssignmentUtil.requiresSubmission(this.assignment)
     ) {
       this.#submitBtn.hidden = true;
