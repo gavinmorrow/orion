@@ -88,6 +88,7 @@ const settingsOptions = {
 
 export default class SettingsMenu extends HTMLElement {
   #shadowRoot;
+  #close;
 
   constructor() {
     super();
@@ -102,7 +103,9 @@ export default class SettingsMenu extends HTMLElement {
 
     const modal = document.createElement("dialog");
     modal.id = "modal";
+    this.#close = () => modal.close();
     modal.append(this.#createResetToDefaultBtn());
+    modal.append(this.#createCloseBtn());
     modal.append(...this.#createModalElements());
     shadow.appendChild(modal);
 
@@ -145,6 +148,13 @@ export default class SettingsMenu extends HTMLElement {
     const btn = document.createElement("button");
     btn.textContent = "Restore to defaults";
     btn.addEventListener("click", () => this.#updateSettings(resetSettings()));
+    return btn;
+  }
+
+  #createCloseBtn() {
+    const btn = document.createElement("button");
+    btn.textContent = "Close";
+    btn.addEventListener("click", () => this.#close());
     return btn;
   }
 
