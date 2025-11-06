@@ -125,46 +125,69 @@ const createCustomUi = async () => {
   const oldElem = NonNull(await waitForElem("app-student-assignment-center"));
 
   try {
+    const createAssignmentCenter = async () => {
+      // construct our own elements
+      const cachedAssignments = await getAssignmentsCache();
+      console.log({ cachedAssignments });
+      const assignmentCenter = new AssignmentCenter(
+        cachedAssignments,
+        await settings(),
+      );
+      return assignmentCenter;
+    };
+    const updateAssignments = async (
+      /** @type {AssignmentCenter} */ assignmentCenter,
+      /** @type {() => void} */ onLoad = () => {},
+    ) => {
+      const updateAssignments = async () => {
+        console.debug("Updating assignments...");
+        try {
+          const assignments = await api
+            .getAllAssignmentData()
+            .then(api.parseAssignments);
+          console.debug("Fetched assignments. Updating ui...");
+          assignmentCenter.meshAssignmentsArray(assignments);
+        } catch (err) {
+          assertIsClass(err, Error);
+          reportError(err);
+        }
+      };
+      if (navigator.onLine) {
+        await updateAssignments();
+        onLoad();
+        return true;
+      } else {
+        const banner = BannerAlert.createBanner(
+          "Waiting for internet connection...",
+          "info",
+          [{ name: "reload", displayText: "Reload page" }],
+        );
+        banner.addEventListener("banner-alert-action-reload", () =>
+          location.reload(),
+        );
+        window.addEventListener("online", async () => {
+          await updateAssignments();
+          banner.close();
+          onLoad();
+        });
+        return false;
+      }
+    };
+
     const wrapper = await createOrionMain(oldElem);
-    // construct our own elements
-    const cachedAssignments = await getAssignmentsCache();
-    console.log({ cachedAssignments });
-    const assignmentCenter = new AssignmentCenter(
-      cachedAssignments,
-      await settings(),
+    const assignmentCenter = await createAssignmentCenter();
+    // Intentionally not awaiting
+    updateAssignments(assignmentCenter);
+    const toolbarMenu = new ToolbarMenu(
+      { oldElem, assignmentCenter },
+      createAssignmentCenter,
+      updateAssignments,
     );
-    const toolbarMenu = new ToolbarMenu({ oldElem, assignmentCenter });
     wrapper.append(toolbarMenu, assignmentCenter);
 
     // hide theirs
     console.debug("Hiding old elem...");
     oldElem.hidden = true;
-
-    const updateAssignments = async () => {
-      console.debug("Updating assignments...");
-      try {
-        const assignments = await api
-          .getAllAssignmentData()
-          .then(api.parseAssignments);
-        console.debug("Fetched assignments. Updating ui...");
-        assignmentCenter.meshAssignmentsArray(assignments);
-      } catch (err) {
-        assertIsClass(err, Error);
-        reportError(err);
-      }
-    };
-    if (navigator.onLine) await updateAssignments();
-    else {
-      const banner = BannerAlert.createBanner(
-        "Waiting for internet connection...",
-        "info",
-        [{ name: "reload", displayText: "Reload page" }],
-      );
-      banner.addEventListener("banner-alert-action-reload", () =>
-        location.reload(),
-      );
-      window.addEventListener("online", updateAssignments);
-    }
 
     // Scrape active assignments first so it goes faster
     // await scrapeAssignments("Active").then(assignmentCenter.addAssignments);

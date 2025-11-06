@@ -1,5 +1,3 @@
-import { assertIsClass } from "/src/util/assertIsClass.js";
-
 import {
   buttonStylesInner,
   clearAssignmentsCache,
@@ -20,11 +18,21 @@ export default class ToolbarMenu extends HTMLElement {
 
   /** @type {ToolbarMenuElems} */
   elems;
+  /** @type {() => Promise<AssignmentCenter>} */
+  createAssignmentCenter;
+  /** @type {(assignmentCenter: AssignmentCenter, onLoad: () => void) => Promise<boolean>} */
+  updateAssignments;
 
-  constructor(/** @type {ToolbarMenuElems} */ elems) {
+  constructor(
+    /** @type {ToolbarMenuElems} */ elems,
+    /** @type {() => Promise<AssignmentCenter>}*/ createAssignmentCenter,
+    /** @type {(assignmentCenter: AssignmentCenter, onLoad: () => void) => Promise<boolean>} */ updateAssignments,
+  ) {
     super();
 
     this.elems = elems;
+    this.createAssignmentCenter = createAssignmentCenter;
+    this.updateAssignments = updateAssignments;
 
     this.#createDom();
   }
@@ -50,6 +58,20 @@ export default class ToolbarMenu extends HTMLElement {
       this.elems.assignmentCenter.extendCalendarGrid(-1);
     });
     root.appendChild(prependBtn);
+
+    const refreshBtn = document.createElement("button");
+    refreshBtn.id = "refresh";
+    refreshBtn.textContent = "Refresh";
+    refreshBtn.addEventListener("click", async () => {
+      document.body.style.cursor = "wait";
+      const newAssignmentCenter = await this.createAssignmentCenter();
+      await this.updateAssignments(newAssignmentCenter, () => {
+        this.elems.assignmentCenter.replaceWith(newAssignmentCenter);
+        this.elems.assignmentCenter = newAssignmentCenter;
+        document.body.style.cursor = "default";
+      });
+    });
+    root.appendChild(refreshBtn);
 
     const settings = new SettingsMenu();
 
