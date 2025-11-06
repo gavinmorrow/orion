@@ -187,6 +187,7 @@ export default class TaskEditor extends HTMLElement {
 
   #hydrateFormSubmit() {
     this.#elems.modal.addEventListener("close", async () => {
+      // FIXME: pressing <esc> still creates the task
       if (this.#elems.modal.returnValue === "Save") {
         // create task
         const formData = new FormData(this.#elems.form);
