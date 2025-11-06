@@ -121,9 +121,6 @@ const createCustomUi = async () => {
   // switch to list view, so scraping is possible
   views.switchTo("list");
 
-  console.debug("Waiting for old elem...");
-  const oldElem = NonNull(await waitForElem("app-student-assignment-center"));
-
   try {
     const createAssignmentCenter = async () => {
       // construct our own elements
@@ -174,10 +171,14 @@ const createCustomUi = async () => {
       }
     };
 
-    const wrapper = await createOrionMain(oldElem);
     const assignmentCenter = await createAssignmentCenter();
     // Intentionally not awaiting
     updateAssignments(assignmentCenter);
+
+    console.debug("Waiting for old elem...");
+    const oldElem = NonNull(await waitForElem("app-student-assignment-center"));
+    const wrapper = await createOrionMain(oldElem);
+
     const toolbarMenu = new ToolbarMenu(
       { oldElem, assignmentCenter },
       createAssignmentCenter,
