@@ -110,6 +110,13 @@ export default class ToolbarMenu extends HTMLElement {
     openChangelogBtn.text = "Open changelog";
     root.appendChild(openChangelogBtn);
 
+    // Feedback button
+    const feedbackBtn = document.createElement("a");
+    feedbackBtn.href = `mailto:gavinmorrow${"@"}hunterschools${"."}org?subject=${encodeURI("Orion Feedback")}`;
+    feedbackBtn.target = "_blank";
+    feedbackBtn.text = "Send feedback";
+    root.appendChild(feedbackBtn);
+
     // task editor
     root.append(this.#createTaskEditor());
 
