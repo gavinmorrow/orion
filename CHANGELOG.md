@@ -7,6 +7,8 @@ _released 00 November 2025_
 Just cleaning up and adding a few things that didn't make it into the previous
 release :]
 
+- Features:
+  - Press `alt-r` (or `option-r` on MacOS) to refresh the assignment center.
 - Improvements:
   - Hide the blackbaud loading indicator when the custom assignment center is
     shown.
@@ -43,7 +45,7 @@ _released 21 September 2025_
   - Assignments that have titles that start or end with newlines will get those
     trimmed. No more needless empty lines! (looking at you, $GUSH_TEACHER)
   - Add a button to reset all settings.
-  - Press `alt-a` (or `option-a` on Macs) to navigate to the assignment center.
+  - Press `alt-a` (or `option-a` on MacOS) to navigate to the assignment center.
     (This can be disabled in settings. Defaults to on.)
 - Improvements:
   - Graded assignments will have a green outline around them. The default

@@ -3,6 +3,7 @@ import {
   clearAssignmentsCache,
   VERSION,
 } from "../common.js";
+import { altShortcut } from "../keyboard-shortcut/keyboard-shortcut.js";
 import SettingsMenu from "../settings-menu.js";
 
 import CreateTaskEvent from "./events/CreateTaskEvent.js";
@@ -71,6 +72,7 @@ export default class ToolbarMenu extends HTMLElement {
         document.body.style.cursor = "default";
       });
     });
+    altShortcut("KeyR", () => refreshBtn.click());
     root.appendChild(refreshBtn);
 
     const settings = new SettingsMenu();
