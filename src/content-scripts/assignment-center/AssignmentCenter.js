@@ -35,6 +35,11 @@ export default class AssignmentCenter extends HTMLElement {
   /** @type {[number, number, number, number, number, number, number]} */
   #assignmentsOnDay = [0, 0, 0, 0, 0, 0, 0];
 
+  /** @type {Set<symbol>} */
+  #loadingAssignments;
+
+  static allDataLoadedEvent = new CustomEvent("all-data");
+
   /**
    * Show a day of the week in the calendar (ie a column in the grid).
    * @param {0|1|2|3|4|5|6} day The day (of the week, 0-indexed) to show. Only `0` and `6` have any effect, the rest are no-ops.
@@ -73,6 +78,7 @@ export default class AssignmentCenter extends HTMLElement {
     super();
     this.assignments = assignments;
     this.settings = settings;
+    this.#loadingAssignments = new Set();
 
     this.addAssignments = this.#addAssignments.bind(this);
     this.meshAssignmentsArray = this.#meshAssignments.bind(this);
@@ -315,11 +321,19 @@ export default class AssignmentCenter extends HTMLElement {
 
   /** @param {Assignment} assignment @returns {void} */
   #asyncAddDescriptionToAssignment(assignment) {
+    const fetchId = Symbol("full data fetch id");
+    this.#loadingAssignments.add(fetchId);
     // Intentionally not await-ing the Promise.
     AssignmentUtil.getBlackbaudReprFor(assignment)
       .then(AssignmentUtil.parseBlackbaudRepr)
       .then(this.#updateAssignment.bind(this, assignment.id, assignment.isTask))
-      .catch(reportError);
+      .catch(reportError)
+      .finally(() => {
+        this.#loadingAssignments.delete(fetchId);
+        if (this.#loadingAssignments.size === 0) {
+          this.dispatchEvent(AssignmentCenter.allDataLoadedEvent);
+        }
+      });
   }
 
   #updateTodayElem() {

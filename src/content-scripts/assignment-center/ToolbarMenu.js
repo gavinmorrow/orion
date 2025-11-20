@@ -6,10 +6,9 @@ import {
 import { altShortcut } from "../keyboard-shortcut/keyboard-shortcut.js";
 import SettingsMenu from "../settings-menu.js";
 
+import AssignmentCenter from "./AssignmentCenter.js";
 import CreateTaskEvent from "./events/CreateTaskEvent.js";
 import TaskEditor from "./TaskEditor.js";
-
-/** @import AssignmentCenter from "./AssignmentCenter.js"; */
 
 export default class ToolbarMenu extends HTMLElement {
   /**
@@ -65,11 +64,23 @@ export default class ToolbarMenu extends HTMLElement {
     refreshBtn.textContent = "Refresh";
     refreshBtn.addEventListener("click", async () => {
       document.body.style.cursor = "wait";
+      console.info("Creating new assignment center...");
       const newAssignmentCenter = await this.createAssignmentCenter();
+      console.log("Loading initial assignment data...");
       await this.updateAssignments(newAssignmentCenter, () => {
-        this.elems.assignmentCenter.replaceWith(newAssignmentCenter);
-        this.elems.assignmentCenter = newAssignmentCenter;
-        document.body.style.cursor = "default";
+        console.log("Waiting for full data load...");
+        const doReplace = () => {
+          console.info("Finished assignment center refresh.");
+          this.elems.assignmentCenter.replaceWith(newAssignmentCenter);
+          this.elems.assignmentCenter = newAssignmentCenter;
+          document.body.style.cursor = "default";
+        };
+        // Timeout after 5sec and just finish the refresh ahead of time
+        setTimeout(() => doReplace(), 5000);
+        newAssignmentCenter.addEventListener(
+          AssignmentCenter.allDataLoadedEvent.type,
+          doReplace,
+        );
       });
     });
     altShortcut("KeyR", () => refreshBtn.click());

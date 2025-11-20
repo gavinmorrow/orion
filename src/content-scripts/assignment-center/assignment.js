@@ -23,6 +23,7 @@ import { scrapeClassColors } from "./scrape-colors.js";
 
 /**
  * @typedef {Object} Assignment
+ * @property {boolean} hasFullData Whether or not the assignment has been updated w/ full assignment data from blackbaud.
  * @property {Number} id
  * @property {Color?} color
  * @property {String} title
@@ -62,6 +63,7 @@ const Assignment = {
 
     return /** @type {T extends null ? null : Assignment} */ (
       /** @type {Assignment} */ ({
+        hasFullData: false,
         // I'm not sure when the AssignmentId is used, but I'm also not sure if the AssignmentIndexId always exists.
         id: blackbaudRepr.AssignmentIndexId ?? blackbaudRepr.AssignmentId,
         // Color will be added later
@@ -219,6 +221,7 @@ const Assignment = {
    */
   async parseBlackbaudRepr(blackbaudRepr) {
     return {
+      hasFullData: true,
       description: blackbaudRepr?.LongDescription,
       submissionMethod:
         blackbaudRepr && Assignment.getSubmissionMethod(blackbaudRepr),

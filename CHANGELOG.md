@@ -13,6 +13,10 @@ release :]
   - Hide the blackbaud loading indicator when the custom assignment center is
     shown.
   - Theoretically slightly improve loading times.
+- Bug Fixes:
+  - When refreshing the assignment center, it fully waits for all assignment
+    data to be loaded before replacing the view. Previously, it only waited
+    for the title and status. (There is a timeout of 5sec.)
 
 ## v0.8.0
 
