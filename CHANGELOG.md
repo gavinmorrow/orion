@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.8.1
+
+_released 00 November 2025_
+
+Just cleaning up and adding a few things that didn't make it into the previous
+release :]
+
+- Improvements:
+  - Hide the blackbaud loading indicator when the custom assignment center is
+    shown.
+  - Theoretically slightly improve loading times.
+
 ## v0.8.0
 
 _released 06 November 2025_
