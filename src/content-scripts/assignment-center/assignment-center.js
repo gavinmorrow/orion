@@ -104,6 +104,8 @@ const filterByNotCompleted = featureFlag(
 const hideLowerNavbar = featureFlag(
   (s) => s.assignmentCenter.hideLowerNavbar,
   async () => {
+    console.debug("Hiding lower navbar...");
+
     const lowerNavbar = await waitForElem("#site-nav-lower");
     if (lowerNavbar == null) return;
     lowerNavbar.hidden = true;
@@ -256,7 +258,6 @@ promiseError(
       // needs to go first, bc everything else will fail if it is broken
       await assignmentCenterBroken();
 
-      console.debug("Hiding lower navbar...");
       // this should run regardless of whether or not the custom UI is enabled
       await hideLowerNavbar();
 
