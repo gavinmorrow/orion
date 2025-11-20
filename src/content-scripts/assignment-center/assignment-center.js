@@ -143,7 +143,7 @@ const createCustomUi = async () => {
       return assignmentCenter;
     };
     const updateAssignments = async (
-      /** @type {AssignmentCenter} */ assignmentCenter,
+      /** @type {Promise<AssignmentCenter>|AssignmentCenter} */ assignmentCenter,
       /** @type {() => void} */ onLoad = () => {},
     ) => {
       const updateAssignments = async () => {
@@ -153,7 +153,7 @@ const createCustomUi = async () => {
             .getAllAssignmentData()
             .then(api.parseAssignments);
           console.debug("Fetched assignments. Updating ui...");
-          assignmentCenter.meshAssignmentsArray(assignments);
+          (await assignmentCenter).meshAssignmentsArray(assignments);
         } catch (err) {
           assertIsClass(err, Error);
           reportError(err);
@@ -181,9 +181,10 @@ const createCustomUi = async () => {
       }
     };
 
-    const assignmentCenter = await createAssignmentCenter();
+    const assignmentCenterPromise = createAssignmentCenter();
     // Intentionally not awaiting
-    updateAssignments(assignmentCenter);
+    updateAssignments(assignmentCenterPromise);
+    const assignmentCenter = await assignmentCenterPromise;
 
     console.debug("Waiting for old elem...");
     const oldElem = NonNull(await waitForElem("app-student-assignment-center"));
@@ -263,18 +264,24 @@ promiseError(
   featureFlag(
     (s) => s.assignmentCenter.enabled,
     async () => {
-      // needs to go first, bc everything else will fail if it is broken
-      await assignmentCenterBroken();
+      // needs to go first, bc everything else will fail if it is broken.
+      // not awaiting b/c if it's broken the solution is to reload, so it's okay
+      // if other stuff runs.
+      assignmentCenterBroken();
+
+      const customUiEnabled = (await settings()).assignmentCenter.customUi
+        .enabled;
+      if (customUiEnabled) {
+        createCustomUi();
+      }
 
       // this should run regardless of whether or not the custom UI is enabled
-      await hideLowerNavbar();
+      // not awaiting b/c it's okay to happen concurrently
+      hideLowerNavbar();
+      whatsNew();
+      notifyUpdate();
 
-      await whatsNew();
-      await notifyUpdate();
-
-      if ((await settings()).assignmentCenter.customUi.enabled) {
-        await createCustomUi();
-      } else {
+      if (!customUiEnabled) {
         // These are seperate bc filters don't get reset on view change
         await modifyFilters();
 
@@ -282,7 +289,8 @@ promiseError(
         await modifyView(NonNull(await views.currentView()));
       }
 
-      await checkForBdays();
+      // not awaiting b/c it's okay to happen concurrently
+      checkForBdays();
     },
   ),
   reportError,
