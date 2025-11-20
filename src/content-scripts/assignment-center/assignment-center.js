@@ -120,6 +120,14 @@ const hideLowerNavbar = featureFlag(
 const createCustomUi = async () => {
   console.debug("Creating custom ui...");
 
+  // Hide loading indicator
+  waitForElem("sky-wait-page", 5000).then((loadingSpinner) => {
+    console.log({ loadingSpinner });
+    if (loadingSpinner != null) {
+      loadingSpinner.style.display = "none";
+    }
+  });
+
   // switch to list view, so scraping is possible
   views.switchTo("list");
 
