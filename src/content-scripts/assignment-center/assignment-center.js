@@ -129,7 +129,7 @@ const createCustomUi = async () => {
   });
 
   // switch to list view, so scraping is possible
-  views.switchTo("list");
+  // views.switchTo("list");
 
   try {
     const createAssignmentCenter = async () => {
