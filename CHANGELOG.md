@@ -2,7 +2,7 @@
 
 ## v0.8.1
 
-_released 00 November 2025_
+_released 20 November 2025_
 
 Just cleaning up and adding a few things that didn't make it into the previous
 release :]
