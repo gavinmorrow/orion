@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.2
+
+_released 06 December 2025_
+
+- Features:
+  - When hovering over a date in the calendar, a small `+` button now appears;
+    press it to create a new task on that day!
+
 ## v0.8.1
 
 _released 20 November 2025_
