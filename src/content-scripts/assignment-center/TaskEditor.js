@@ -43,6 +43,11 @@ export default class TaskEditor extends HTMLElement {
   /** @type {Assignment?} */
   #task;
 
+  /** A default due date for the task.
+   * `undefined` means the next weekday.
+   * @type {Date|undefined} */
+  #defaultDueDate;
+
   /**
    * @typedef {Object} TaskEditorElems
    * @prop {HTMLInputElement} title
@@ -62,9 +67,13 @@ export default class TaskEditor extends HTMLElement {
   /** @type {() => void} */
   showModal;
 
-  constructor(/** @type {Assignment?} */ task) {
+  constructor(
+    /** @type {Assignment?} */ task,
+    /** @type {Date=} */ defaultDueDate = undefined,
+  ) {
     super();
     this.#task = task;
+    this.#defaultDueDate = defaultDueDate;
     this.updateAssignment = this.#updateAssignment.bind(this);
     this.showModal = this.#showModal.bind(this);
 
@@ -140,6 +149,8 @@ export default class TaskEditor extends HTMLElement {
   #showModal() {
     // I'm not sure why it's not, but the date input gets reset to blank after
     // closing the new task dialog and reopening it. So refresh it here.
+    //
+    // Also refresh for `this.#defaultDueDate` support.
     this.#refreshDueDate();
 
     this.#elems.title.placeholder = randomPlaceholder();
@@ -171,7 +182,7 @@ export default class TaskEditor extends HTMLElement {
 
   #refreshDueDate() {
     this.#elems.dueDate.value = Calendar.asInputValue(
-      this.#task?.dueDate ?? Calendar.nextWeekday(),
+      this.#task?.dueDate ?? this.#defaultDueDate ?? Calendar.nextWeekday(),
     );
   }
 

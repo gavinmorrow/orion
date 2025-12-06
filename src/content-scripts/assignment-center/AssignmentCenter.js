@@ -14,7 +14,9 @@ import { buttonStylesInner } from "../common.js";
 
 import AssignmentUtil from "./assignment.js";
 import AssignmentBox from "./AssignmentBox.js";
+import CreateTaskEvent from "./events/CreateTaskEvent.js";
 import Task from "./Task.js";
+import TaskEditor from "./TaskEditor.js";
 
 export default class AssignmentCenter extends HTMLElement {
   /** @type {Assignment[]} */
@@ -225,17 +227,17 @@ export default class AssignmentCenter extends HTMLElement {
   }
 
   #createCalendarBoxDate(/** @type {Date} */ date) {
-    const dateElem = document.createElement("p");
-    dateElem.classList.add("calendar-date");
-    dateElem.title = date.toLocaleDateString("default", {
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("calendar-date");
+    wrapper.title = date.toLocaleDateString("default", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
 
+    const dateElem = document.createElement("p");
     // Prove to typescript that `.textContent` is not null
     dateElem.textContent = "";
-
     // TODO: figure out how to show this on the first day that a month is *shown
     //       in the calendar* (which is often not the 1st of the month)
     if (date.getDate() === 1) {
@@ -246,7 +248,27 @@ export default class AssignmentCenter extends HTMLElement {
     }
     dateElem.textContent += date.getDate();
 
-    return dateElem;
+    const taskEditor = new TaskEditor(null, date);
+    taskEditor.addEventListener("create-task", (e) => {
+      // Clone the task to prevent error:
+      // InvalidStateError: An attempt was made to use an object that is not, or is no longer, usable
+      this.dispatchEvent(new CreateTaskEvent(e.task));
+      e.stopPropagation();
+    });
+
+    const newTaskBtn = document.createElement("button");
+    newTaskBtn.textContent = "+";
+    newTaskBtn.ariaLabel = "New task";
+    newTaskBtn.title = "New task";
+    newTaskBtn.addEventListener("click", () => taskEditor.showModal());
+
+    const taskEditorBtnWrapper = document.createElement("div");
+    taskEditorBtnWrapper.appendChild(newTaskBtn);
+    taskEditorBtnWrapper.appendChild(taskEditor);
+
+    wrapper.appendChild(dateElem);
+    wrapper.appendChild(taskEditorBtnWrapper);
+    return wrapper;
   }
 
   #hydrateCalendar() {
@@ -547,8 +569,31 @@ main {
     }
 
     & .calendar-date {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
       background-color: oklch(from var(--color-bg-box) calc(l*120%) c h);
+
       padding: 0 0.25em;
+
+      & * {
+        margin: 0;
+        padding: 0;
+        background-color: transparent;
+        border: none;
+      }
+
+      /* Using :has(...) as a :focus-visible-within */
+      &:not(:hover, :has(:focus-visible)) button { opacity: 0; }
+      & button {
+        color: grey;
+        font-size: 1.1em;
+        line-height: 1;
+
+        &:hover, &:focus-visible { color: white; }
+        &:focus-visible { outline: 1px solid white; }
+      }
     }
 
     & ul {
