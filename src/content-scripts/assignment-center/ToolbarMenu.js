@@ -152,6 +152,7 @@ export default class ToolbarMenu extends HTMLElement {
 
     const newTaskBtn = document.createElement("button");
     newTaskBtn.textContent = "New task";
+    // TODO: does this need to be in a slot?
     newTaskBtn.slot = "show-modal";
     newTaskBtn.addEventListener("click", () => taskEditor.showModal());
 
