@@ -236,6 +236,8 @@ export default class AssignmentCenter extends HTMLElement {
     // Prove to typescript that `.textContent` is not null
     dateElem.textContent = "";
 
+    // TODO: figure out how to show this on the first day that a month is *shown
+    //       in the calendar* (which is often not the 1st of the month)
     if (date.getDate() === 1) {
       dateElem.textContent =
         date.toLocaleString("default", {
