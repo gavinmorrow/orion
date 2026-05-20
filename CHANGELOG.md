@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.8.3
+
+_released 20 May 2026_
+
+The features in today's release are really bug fixes of Blackbaud's product. I
+would like to note that Blackbaud itself still (as of the time of writing) has
+the bugs that I just fixed. Enjoy :]
+
+- Features:
+  - Assignments will now only change status when you manually do so. They will
+    *not* mark as completed when it becomes the assignment date.
+    - Note: if you submit an assignment via Blackbaud, you will now have to
+      manually mark it as completed.
+  - You can mark assignments as overdue.
+
 ## v0.8.2
 
 _released 06 December 2025_
