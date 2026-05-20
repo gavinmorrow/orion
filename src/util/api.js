@@ -22,7 +22,8 @@ import BlackbaudDate from "./BlackbaudDate.js";
  * @property {string} DateDue (or might be DueDate?)
  * @property {string} AssignedDate (or might be DateAssigned?)
  * @property {string} DueDate (or might be DateDue?)
- * @property {-1|0|1|2|4} AssignmentStatusType As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
+ * @property {-1|0|1|2|4} StudentStatus What the student has manually set the status to (so, submitted assignments will still be Todo). As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
+ * @property {-1|0|1|2|4} AssignmentStatusType **DO NOT USE**. Gets automatically marked as done. Unreliable. As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
  * @property {-1|0|1|2|4} TaskStatus (maybe make optional?) As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
  * @property {number} MaxPoints
  * @property {boolean} ExtraCredit
@@ -40,7 +41,7 @@ import BlackbaudDate from "./BlackbaudDate.js";
  *
  * @property {BlackbaudDownloadItem[]} DownloadItems
  * @property {BlackbaudLinkItem[]} LinkItems
- * @property {{ GradebookGrade: number? }} AssignmentGrade
+ * @property {BlackbaudAssignment_AssignmentGrade} AssignmentGrade
  */ // lots of other things too but i'm too lazy to list them, add more as needed
 /**
  * @typedef {Object} BlackbaudDownloadItem
@@ -62,6 +63,11 @@ import BlackbaudDate from "./BlackbaudDate.js";
  * @property {String} DownloadUrl The URL of the file. An absolute link for `https://hunterschools.myschoolapp.com/`.
  * @property {String} FileName The file name as submitted by the user.
  */ // lots of other things too but i'm too lazy to list them, add more as needed
+/**
+ * @typedef {Object} BlackbaudAssignment_AssignmentGrade
+ * @property {number?} GradebookGrade
+ * @property {-1|0|1|2|4} AssignmentStatusType As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
+ */
 
 /** Everything involving the Blackbaud API. */
 const api = {

@@ -95,7 +95,7 @@ const Assignment = {
   },
 
   getStatusText(/** @type {BlackbaudAssignmentPreview} */ blackbaudRepr) {
-    switch (blackbaudRepr.AssignmentStatusType) {
+    switch (blackbaudRepr.StudentStatus) {
       // These are all just best guesses. They could totally all be wrong.
       case -1:
         return "To do";
@@ -111,7 +111,7 @@ const Assignment = {
       default:
         console.error(
           "Unkonwn status",
-          blackbaudRepr.AssignmentStatusType,
+          blackbaudRepr.StudentStatus,
           `for assignment ${blackbaudRepr.ShortDescription}`,
           `in class ${blackbaudRepr.GroupName}`,
         );
