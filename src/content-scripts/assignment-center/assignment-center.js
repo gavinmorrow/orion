@@ -2,7 +2,7 @@ import api from "/src/util/api.js";
 import { assertIsClass } from "/src/util/assertIsClass.js";
 import { resizeHeaderSpacer } from "/src/util/headerHeight.js";
 import { NonNull } from "/src/util/NonNull.js";
-import { reportError } from "/src/util/reportError.js";
+import { reportOrionError } from "/src/util/reportOrionError.js";
 
 import { BannerAlert } from "../banner-alert.js";
 import checkForBdays from "../birthday.js";
@@ -156,7 +156,7 @@ const createCustomUi = async () => {
           (await assignmentCenter).meshAssignmentsArray(assignments);
         } catch (err) {
           assertIsClass(err, Error);
-          reportError(err);
+          reportOrionError(err);
         }
       };
       if (navigator.onLine) {
@@ -208,7 +208,7 @@ const createCustomUi = async () => {
     console.error(`There was an error creating the custom UI: ${err}`);
     console.error(err);
     assertIsClass(err, Error);
-    reportError(err);
+    reportOrionError(err);
   }
 };
 
@@ -293,5 +293,5 @@ promiseError(
       checkForBdays();
     },
   ),
-  reportError,
+  reportOrionError,
 )();

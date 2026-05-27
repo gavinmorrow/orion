@@ -9,6 +9,7 @@ import { assertIsClass } from "/src/util/assertIsClass.js";
 import Calendar from "/src/util/Calendar.util.js";
 import { NonNull } from "/src/util/NonNull.js";
 import { applyDiff, findDiff } from "/src/util/objectDiff.js";
+import { reportOrionError } from "/src/util/reportOrionError.js";
 
 import { buttonStylesInner } from "../common.js";
 
@@ -87,11 +88,11 @@ export default class AssignmentCenter extends HTMLElement {
     this.extendCalendarGrid = this.#extendCalendarGrid.bind(this);
 
     this.addEventListener("change-assignment", (e) => {
-      this.#updateAssignment(e.id, e.isTask, e.changes).catch(reportError);
+      this.#updateAssignment(e.id, e.isTask, e.changes).catch(reportOrionError);
       e.stopPropagation();
     });
     this.addEventListener("create-task", (e) => {
-      this.#addTask(e.task).catch(reportError);
+      this.#addTask(e.task).catch(reportOrionError);
       e.stopPropagation();
     });
 
@@ -351,7 +352,7 @@ export default class AssignmentCenter extends HTMLElement {
     AssignmentUtil.getBlackbaudReprFor(assignment)
       .then(AssignmentUtil.parseBlackbaudRepr)
       .then(this.#updateAssignment.bind(this, assignment.id, assignment.isTask))
-      .catch(reportError)
+      .catch(reportOrionError)
       .finally(() => {
         this.#loadingAssignments.delete(fetchId);
         if (this.#loadingAssignments.size === 0) {
@@ -484,7 +485,8 @@ export default class AssignmentCenter extends HTMLElement {
         assignmentBox.updateAssignment(this.assignments[index]);
       }
     } catch (err) {
-      reportError(err);
+      assertIsClass(err, Error);
+      reportOrionError(err);
     }
   }
 

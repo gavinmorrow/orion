@@ -1,6 +1,8 @@
 import api from "/src/util/api.js";
+import { assertIsClass } from "/src/util/assertIsClass.js";
 import BlackbaudDate from "/src/util/BlackbaudDate.js";
 import { NonNull } from "/src/util/NonNull.js";
+import { reportOrionError } from "/src/util/reportOrionError.js";
 import { sortForArray } from "/src/util/sort.js";
 
 import { getStudentUserId } from "../student-user-id.js";
@@ -149,7 +151,8 @@ const Assignment = {
 
       return { ...a, color };
     } catch (err) {
-      reportError(err);
+      assertIsClass(err, Error);
+      reportOrionError(err);
       return { ...a, color: "#111" };
     }
   },

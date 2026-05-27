@@ -4,8 +4,14 @@
 
 _released 26 May 2026_
 
+Oh look at that, Blackbaud broke their own product. Again.
+
+Most features should still work. I belive class colors are the only thing
+that doesn't.
+
 - Bug Fixes:
   - Fix graded assignments not showing as graded.
+  - Fix some errors not being reported properly.
 
 ## v0.8.3
 

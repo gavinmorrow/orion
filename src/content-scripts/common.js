@@ -235,25 +235,26 @@ export const featureFlag = (predicate, fn) => async () => {
 /**
  * Wrap a function, to ensure all errors are logged.
  * @param {() => Promise<any>} fn The function to wrap.
- * @param {(err: Error) => void} handler The function to call when the error is caught.
+ * @param {(err: Error) => void=} handler The function to call when the error is caught.
  * @returns {() => Promise<Promise<any>>} A function that will log any thrown errors in the provided function. This will rethrow errors.
  */
-export const promiseError =
-  (fn, handler = reportError ?? alert) =>
-  async () => {
-    // Don't use Promise methods to avoid `InternalError: Promise rejection
-    // value is a non-unwrappable cross-compartment wrapper.`
-    // (see <https://bugzilla.mozilla.org/show_bug.cgi?id=1871516>)
-    try {
-      return await fn();
-    } catch (err) {
-      if (err instanceof Error) {
-        console.error(`Error in promise: ${err}\nstack: ${err.stack}`);
-        handler(err);
-      }
-      throw err;
+export const promiseError = (fn, handler) => async () => {
+  // Don't use Promise methods to avoid `InternalError: Promise rejection
+  // value is a non-unwrappable cross-compartment wrapper.`
+  // (see <https://bugzilla.mozilla.org/show_bug.cgi?id=1871516>)
+  try {
+    return await fn();
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error(`Error in promise: ${err}\nstack: ${err.stack}`);
+      // Do this rather than a proper default so that we don't need a circular
+      // dep on reportOrionError.
+      if (handler == undefined) handler = globalThis.reportOrionError ?? alert;
+      handler(err);
     }
-  };
+    throw err;
+  }
+};
 
 /**
  * Make the given element have the given class if *and only if* `predicate` is truthy.

@@ -1,6 +1,8 @@
 import { ApiError } from "/src/util/api.js";
 import { NonNull } from "/src/util/NonNull.js";
 
+import { reportOrionError } from "../util/reportOrionError.js";
+
 import { memo, waitFor, waitForElem } from "./common.js";
 
 /**
@@ -40,7 +42,7 @@ const parseProfileLinkHref = (href) => {
   const userId = NonNull(href?.match(regexp)?.groups).id;
 
   if (userId == null) {
-    reportError(new ApiError("getStudentUserId"));
+    reportOrionError(new ApiError("getStudentUserId"));
   }
 
   return userId;

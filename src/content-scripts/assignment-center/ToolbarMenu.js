@@ -1,3 +1,5 @@
+import { reportOrionError } from "/src/util/reportOrionError.js";
+
 import {
   buttonStylesInner,
   clearAssignmentsCache,
@@ -111,7 +113,11 @@ export default class ToolbarMenu extends HTMLElement {
     // clearAssignmentsCacheBtn.slot = "show-modal";
     clearAssignmentsCacheBtn.addEventListener("click", () =>
       clearAssignmentsCache()
-        .catch((e) => reportError(`Could not clear assignments cache: ${e}`))
+        .catch((e) =>
+          reportOrionError(
+            new Error(`Could not clear assignments cache: ${e}`),
+          ),
+        )
         .then(() => location.reload()),
     );
     // root.appendChild(clearAssignmentsCacheBtn);

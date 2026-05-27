@@ -1,5 +1,7 @@
-import { BannerAlert } from "./banner-alert";
-import { featureFlag, promiseError, waitForElems } from "./common";
+import { reportOrionError } from "/src/util/reportOrionError.js";
+
+import { BannerAlert } from "./banner-alert.js";
+import { featureFlag, promiseError, waitForElems } from "./common.js";
 
 promiseError(
   featureFlag(
@@ -64,5 +66,5 @@ promiseError(
       }
     },
   ),
-  reportError,
+  reportOrionError,
 )();

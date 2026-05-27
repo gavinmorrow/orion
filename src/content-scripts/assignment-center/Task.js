@@ -1,5 +1,6 @@
 import api from "/src/util/api.js";
 import BlackbaudDate from "/src/util/BlackbaudDate.js";
+import { reportOrionError } from "/src/util/reportOrionError.js";
 
 import AssignmentUtil from "./assignment.js";
 
@@ -27,7 +28,7 @@ const Task = {
             .map(Task.addColor),
         ),
       (err) => {
-        reportError(err);
+        reportOrionError(err);
         // Allow the rest of the UI to work, just without tasks.
         return [];
       },

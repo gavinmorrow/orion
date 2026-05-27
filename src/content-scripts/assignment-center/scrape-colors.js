@@ -89,9 +89,8 @@ export const [scrapeClassColors, _updateScrapedClassColors] = memo(async () => {
     console.error("Could not find the close button.");
 
     // As a backup, just hide the entire modal so stuff is still useable.
-    NonNull(
-      assertHTMLElem(document.querySelector("sky-modal-host")),
-    ).style.display = "none";
+    const modal = assertHTMLElem(document.querySelector("sky-modal-host"));
+    if (modal != null) modal.style.display = "none";
   }
 
   return map;

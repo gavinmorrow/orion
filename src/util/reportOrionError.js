@@ -4,10 +4,11 @@ import { ApiError } from "./api.js";
 import { assertIsClass } from "./assertIsClass.js";
 import { NonNull } from "./NonNull.js";
 
+// Named as such to avoid conflict with browser `reportError`
 /**
  * Display an error to the user.
  * @param {ApiError|Error} err */
-export const reportError = (err) => {
+export const reportOrionError = (err) => {
   console.error(err);
 
   try {
@@ -82,3 +83,5 @@ const shouldAlert = (err) => {
 
   return numRecent <= 0;
 };
+// Do this so it can be used in common.js without a circular import.
+globalThis.reportOrionError = reportOrionError;

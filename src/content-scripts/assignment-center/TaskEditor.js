@@ -4,6 +4,7 @@ import api from "/src/util/api.js";
 import { assertHTMLElem } from "/src/util/assertHtmlElem.js";
 import Calendar from "/src/util/Calendar.util.js";
 import { NonNull } from "/src/util/NonNull.js";
+import { reportOrionError } from "/src/util/reportOrionError.js";
 
 import { getStudentUserId } from "../student-user-id.js";
 
@@ -168,7 +169,7 @@ export default class TaskEditor extends HTMLElement {
       }
       this.#refreshClassSelectSelectedOption();
     } catch (err) {
-      reportError(err);
+      reportOrionError(err);
     }
   }
 
