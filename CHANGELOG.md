@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8.4
+
+_released 26 May 2026_
+
+- Bug Fixes:
+  - Fix graded assignments not showing as graded.
+
 ## v0.8.3
 
 _released 20 May 2026_

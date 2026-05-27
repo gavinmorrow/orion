@@ -95,6 +95,11 @@ const Assignment = {
   },
 
   getStatusText(/** @type {BlackbaudAssignmentPreview} */ blackbaudRepr) {
+    // StudentStatus will never be graded, so make sure to check for that first
+    if (blackbaudRepr.AssignmentStatusType == 4) {
+      return "Graded";
+    }
+
     switch (blackbaudRepr.StudentStatus) {
       // These are all just best guesses. They could totally all be wrong.
       case -1:
