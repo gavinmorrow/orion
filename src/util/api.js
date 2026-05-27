@@ -213,7 +213,7 @@ const api = {
       ApiError.wrapFetch(
         "getClassColors",
         fetch(
-          "https://hunterschools.myschoolapp.com/api/AssignmentCenter/StudentAssignmentCenterSettingsGet?displayByDueDate=true",
+          "https://hunterschools.myschoolapp.com/api/AssignmentCenter/StudentAssignmentCenterSettingsGet?studentId=0&displayByDueDate=true",
         ),
       )
         .then(

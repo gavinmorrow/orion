@@ -1,8 +1,19 @@
 # Changelog
 
+## v0.8.5
+
+_released 27 May 2026_
+
+Blackbaud is apparently fixed now. Yay?
+
+- Bug Fixes:
+  - Colors work again!
+  - The "keep me logged in" button should go back to be automatically pressed.
+    Maybe??? Unclear if it was ever broken to being with.
+
 ## v0.8.4
 
-_released 26 May 2026_
+_released 27 May 2026_
 
 Oh look at that, Blackbaud broke their own product. Again.
 
