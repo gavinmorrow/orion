@@ -244,13 +244,41 @@ article {
     &::before { left: 0; border-radius: var(--border-radius-class-color) 0 0 var(--border-radius-class-color); }
     &::after { right: 0; border-radius: 0 var(--border-radius-class-color) var(--border-radius-class-color) 0; }
 
-    &.type-major          { --border-color: yellow; }
-    &.requires-submission { --border-color: oklch(78% 0.17 214); }
-    &.status-graded       { --border-color: oklch(78% 0.17 146); }
+    --color-yellow: yellow;
+    --color-blue: oklch(78% 0.17 214); 
+    --color-green: oklch(78% 0.17 146);
+    &.type-major          { border-color: var(--color-yellow); }
+    &.requires-submission { border-color: var(--color-blue); }
+    &.status-graded       { border-color: var(--color-green); }
+    &.type-major.requires-submission {
+      border-top-color: var(--color-yellow);
+      border-left-color: var(--color-yellow);
+      border-bottom-color: var(--color-blue);
+      border-right-color: var(--color-blue);
+    }
+    &.type-major.status-graded {
+      border-top-color: var(--color-yellow);
+      border-left-color: var(--color-yellow);
+      border-bottom-color: var(--color-green);
+      border-right-color: var(--color-green);
+    }
+    &.requires-submission.status-graded {
+      border-top-color: var(--color-blue);
+      border-left-color: var(--color-blue);
+      border-bottom-color: var(--color-green);
+      border-right-color: var(--color-green);
+    }
+    &.type-major.requires-submission.status-graded {
+      border-top-color: var(--color-green);
+      border-left-color: var(--color-blue);
+      border-bottom-color: var(--color-yellow);
+      border-right-color: var(--color-blue);
+    }
     &.type-major, &.requires-submission, &.status-graded {
       --border-radius-class-color: var(--inner-border-width);
       --width-class-color: calc(var(--width-class-color-base) - var(--border-width));
-      border: var(--border-width) solid var(--border-color);
+      border-width: var(--border-width);
+      border-style: solid;
     }
 
     #title a {

@@ -6,6 +6,10 @@ _released 27 May 2026_
 
 Blackbaud is apparently fixed now. Yay?
 
+- Features:
+  - Assignments that have multiple of being major, submission, and/or graded.
+    The border will now be *multiple* colors! (I'm not quite sure if I love it,
+    but I can see it growing on me. Tell me what you think!)
 - Bug Fixes:
   - Colors work again!
   - The "keep me logged in" button should go back to be automatically pressed.
