@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8.6
+
+_released 22 June 2026_
+
+- Bug Fixes:
+  - Orion will no longer hang when there are no future assignments.
+
 ## v0.8.5
 
 _released 27 May 2026_

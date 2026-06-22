@@ -367,8 +367,9 @@ export default class AssignmentCenter extends HTMLElement {
     today?.classList.remove("today");
 
     // add today class to new today
+    const selectedDate = this.#findSelectedDate();
     const todayList = this.#shadowRoot.getElementById(
-      AssignmentCenter.#idForAssignmentList(this.#findSelectedDate()),
+      AssignmentCenter.#idForAssignmentList(selectedDate),
     );
     NonNull(todayList?.parentElement).classList.add("today");
   }
@@ -506,8 +507,10 @@ export default class AssignmentCenter extends HTMLElement {
   #findSelectedDate(start = 1) {
     const today = Calendar.resetDate(new Date());
     if (this.assignments.length === 0) return today;
-    // eslint-disable-next-line no-constant-condition -- it reads nicer than a while loop
-    for (let offset = start; true; offset += 1) {
+    // Limit offset to 28 days (the default amount that is looked ahead) because
+    // otherwise if there are no assignments at all, it will loop forever and
+    // hang the page.
+    for (let offset = start; offset < 28; offset += 1) {
       const date = Calendar.offsetFromDay(today, offset);
 
       // check if assignments exist on date
@@ -517,6 +520,7 @@ export default class AssignmentCenter extends HTMLElement {
         ).length > 0;
       if (assignmentsExistOnDate) return date;
     }
+    return today;
   }
 
   static #stylesheet = `\
