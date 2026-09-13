@@ -5,10 +5,10 @@
  * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof#instanceof_and_multiple_realms
  * @template V
  * @template T
- * @param {V} val
+ * @param {unknown} val
  * @param {new (...args: any) => T} ty
  * @returns {asserts val is T} */
-export const assertIsClass = (val, ty) => {
+export function assertIsClass(val, ty) {
   /** @type {boolean} */
   let isTy;
 
@@ -23,4 +23,4 @@ export const assertIsClass = (val, ty) => {
     console.error("Type assertion failed!", { val, ty });
     throw new Error(`Type assertion failed! val: ${val}, ty: ${ty}`);
   }
-};
+}
