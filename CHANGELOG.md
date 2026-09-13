@@ -27,8 +27,8 @@ Now, without further ado, the actual changes:
       of "*Custom task*". The class name at the bottom now has "(custom task)"
       appended to it, if a specific class is set.
 - Bug Fixes:
-  - After editing a task, the class name in the details popup no longer shows
-    as empty.
+  - After editing a task, the class name in the details popup no longer is
+    blank.
 
 ## v0.8.6
 
