@@ -39,12 +39,19 @@ const Task = {
   // TODO: figure out the type
   /** @param {BlackbaudAssignmentPreview} t @returns {Assignment} */
   parse(t) {
+    // If the task has a `~~` in the ShortDescription, then it contains a description.
+    const parts = t.ShortDescription.split(/ ?~~ ?/);
+    let title = parts[0];
+    /** @type {string|null} */
+    let description = parts[1] ?? null;
+
     return {
+      hasFullData: false,
       id: Number(t.UserTaskId),
       color: null,
-      title: t.ShortDescription,
+      title,
       link: null,
-      description: null,
+      description,
       status: /** @type {Status} */ (
         Object.keys(api.statusNumMap).find(
           (k) => api.statusNumMap[/** @type {Status} */ (k)] === t.TaskStatus,

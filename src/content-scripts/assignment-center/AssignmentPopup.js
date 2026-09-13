@@ -172,9 +172,14 @@ export default class AssignmentPopup extends HTMLElement {
 
   #hydrateDescription() {
     // get assignment description, if available
-    // do NOT escape, b/c this content is taken directly from the innerHTML
-    // of the full description page
-    this.#desc.innerHTML = this.#getDesc();
+    if (this.assignment.isTask) {
+      // Task descriptions are written in plain text, not html.
+      this.#desc.textContent = this.#getDesc();
+    } else {
+      // do NOT escape, b/c this content is taken directly from the innerHTML
+      // of the full description page
+      this.#desc.innerHTML = this.#getDesc();
+    }
   }
 
   #hydrateAttachments() {
@@ -203,7 +208,11 @@ export default class AssignmentPopup extends HTMLElement {
   }
 
   #hydrateClassName() {
-    this.#class.textContent = this.assignment.class.name;
+    let className = this.assignment.class.name;
+    if (this.assignment.isTask && className !== "General Task")
+      className += " (custom task)";
+
+    this.#class.textContent = className;
   }
 
   /** @param {Assignment} assignment */
@@ -260,7 +269,7 @@ export default class AssignmentPopup extends HTMLElement {
   }
 
   #getDesc() {
-    if (this.assignment.isTask) return "<i>Custom task</i>";
+    if (this.assignment.isTask) return this.assignment.description ?? "";
 
     const rawDesc = this.assignment.description;
     if (rawDesc === null || rawDesc === undefined) return "<i>Loading...</i>";

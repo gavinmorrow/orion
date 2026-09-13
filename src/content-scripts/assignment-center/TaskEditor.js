@@ -52,6 +52,7 @@ export default class TaskEditor extends HTMLElement {
   /**
    * @typedef {Object} TaskEditorElems
    * @prop {HTMLInputElement} title
+   * @prop {HTMLTextAreaElement} description
    * @prop {HTMLDialogElement} modal
    * @prop {HTMLButtonElement} cancel
    * @prop {HTMLFormElement} form
@@ -91,6 +92,10 @@ export default class TaskEditor extends HTMLElement {
       <input required autofocus id="title" type="text" name="title">
     </label>
     <label>
+      Description
+      <textarea id="description" name="description"></textarea>
+    </label>
+    <label>
       Class
       <select required name="class" id="class-select">
         <option value="0">None</option>
@@ -110,6 +115,7 @@ export default class TaskEditor extends HTMLElement {
     /** @type {{[key in keyof TaskEditorElems]: string}} */
     const ids = {
       title: "title",
+      description: "description",
       modal: "modal",
       cancel: "cancel",
       form: "task-form",
@@ -143,6 +149,7 @@ export default class TaskEditor extends HTMLElement {
 
     this.#refreshId();
     this.#refreshTitle();
+    this.#refreshDescription();
     this.#refreshClassSelectSelectedOption();
     this.#refreshDueDate();
   }
@@ -181,6 +188,10 @@ export default class TaskEditor extends HTMLElement {
     this.#elems.title.value = this.#task?.title ?? "";
   }
 
+  #refreshDescription() {
+    this.#elems.description.textContent = this.#task?.description ?? "";
+  }
+
   #refreshDueDate() {
     this.#elems.dueDate.value = Calendar.asInputValue(
       this.#task?.dueDate ?? this.#defaultDueDate ?? Calendar.nextWeekday(),
@@ -208,6 +219,10 @@ export default class TaskEditor extends HTMLElement {
           // See <https://stackoverflow.com/a/57714704/>
           Array.from(/** @type {any} */ (formData)),
         );
+        let shortDescription = taskRaw.title;
+        if (taskRaw.description != null && taskRaw.description != "") {
+          shortDescription += ` ~~ ${taskRaw.description}`;
+        }
         const dueDate = `${Calendar.asBlackbaudDate(
           Calendar.fromInputValue(taskRaw.dueDate),
         )} 8:08 AM`;
@@ -220,7 +235,7 @@ export default class TaskEditor extends HTMLElement {
           // Use the same value b/c that's how Blackbaud does it
           AssignedDate: dueDate,
           DueDate: dueDate,
-          ShortDescription: taskRaw.title,
+          ShortDescription: shortDescription,
           TaskStatus: status,
           SectionId: taskRaw.class,
           UserId: await getStudentUserId(),
@@ -283,6 +298,11 @@ label {
 button {
   border: none;
   flex-grow: 1;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
 }
 
 #save       { background-color: oklch(35% 0.1 283); }
