@@ -2,7 +2,7 @@
 
 ## v0.9.0
 
-_released 00 September 2026_
+_released 13 September 2026_
 
 Woo a version bump! Welcome back to school everyone :D
 
