@@ -35,6 +35,7 @@ const randomPlaceholder = () =>
  * @property {string} DueDate
  * @property {string} ShortDescription
  * @property {number} TaskStatus
+ * @property {string?} GroupName
  * @property {string?} SectionId
  * @property {string?} UserId
  * @property {number?} UserTaskId
@@ -219,10 +220,12 @@ export default class TaskEditor extends HTMLElement {
           // See <https://stackoverflow.com/a/57714704/>
           Array.from(/** @type {any} */ (formData)),
         );
+
         let shortDescription = taskRaw.title;
         if (taskRaw.description != null && taskRaw.description != "") {
           shortDescription += ` ~~ ${taskRaw.description}`;
         }
+
         const dueDate = `${Calendar.asBlackbaudDate(
           Calendar.fromInputValue(taskRaw.dueDate),
         )} 8:08 AM`;
@@ -230,6 +233,11 @@ export default class TaskEditor extends HTMLElement {
           this.#task?.status != undefined
             ? api.statusNumMap[this.#task.status]
             : -1;
+
+        const classes = await api.getClasses();
+        const classId = taskRaw.class;
+        const className = classes.get(Number(classId)) ?? null;
+
         /** @type {BlackbaudTask} */
         const task = {
           // Use the same value b/c that's how Blackbaud does it
@@ -237,7 +245,8 @@ export default class TaskEditor extends HTMLElement {
           DueDate: dueDate,
           ShortDescription: shortDescription,
           TaskStatus: status,
-          SectionId: taskRaw.class,
+          GroupName: className,
+          SectionId: classId,
           UserId: await getStudentUserId(),
           UserTaskId: taskRaw.id === "" ? null : Number(taskRaw.id),
         };
