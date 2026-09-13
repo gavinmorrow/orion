@@ -25,7 +25,6 @@ import BlackbaudDate from "./BlackbaudDate.js";
  * @property {-1|0|1|2|4} StudentStatus What the student has manually set the status to (so, submitted assignments will still be Todo). As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
  * @property {-1|0|1|2|4} AssignmentStatusType **DO NOT USE**. Gets automatically marked as done. Unreliable. As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
  * @property {-1|0|1|2|4} TaskStatus (maybe make optional?) As far as I can tell: -1 -> Todo, 0 -> In progress, 1 -> Compeleted/Graded, 2 -> Missing/Overdue, 4 -> Graded.
- * @property {number} MaxPoints
  * @property {boolean} ExtraCredit
  * @property {number?} MaxPoints
  */
