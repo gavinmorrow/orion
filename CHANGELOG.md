@@ -4,7 +4,19 @@
 
 _released 00 September 2026_
 
-Woo a version bump!
+Woo a version bump! Welcome back to school everyone :D
+
+Also, if you actually use this, please let me know! I forgot who does and
+doesn't, and I'd like to figure it out. Thanks!
+
+This is also your reminder that if you (yes, you!) have a feature that you want
+to see, or a bug that you want fixed, all you have to do is reach out to me and
+(my workload depending) it most likely will happen!
+
+(Also: I do have a couple other features planned, so expect more release(s)
+soon, but I want to get the stuff here out sooner.)
+
+Now, without further ado, the actual changes:
 
 - Features:
   - You can now add descriptions to custom tasks!! They are internally stored as
