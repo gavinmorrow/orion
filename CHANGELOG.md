@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.9.0
+
+_released 00 September 2026_
+
+Woo a version bump!
+
+- Features:
+  - You can now add descriptions to custom tasks!! They are internally stored as
+    "Title ~~ Description", but you will only see that on devices not using
+    Orion. I think it's readable enough, but if you don't like it, don't use it.
+    (But do let me know what you think!)
+    - As a consequence of the above, custom tasks no longer have a description
+      of "*Custom task*". The class name at the bottom now has "(custom task)"
+      appended to it, if a specific class is set.
+- Bug Fixes:
+  - After editing a task, the class name in the details popup no longer shows
+    as empty.
+
 ## v0.8.6
 
 _released 22 June 2026_
