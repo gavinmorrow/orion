@@ -54,20 +54,29 @@ const defaultSettings = {
     showBanner: false,
   },
 };
+/** @typedef {typeof defaultSettings} Settings */
 
 const getSettings = async () =>
   meshObjects(defaultSettings, (await browser.storage.local.get()).settings);
 
+/** @param {Partial<Settings>} newValue @returns {Promise<undefined>} */
 const setSettings = async (newValue) =>
   browser.storage.local.set({
     settings: newValue,
   });
 
+/** @param {Partial<Settings>} partial @returns {Promise<undefined>} */
 const updateSettings = async (partial) =>
-  browser.storage.local.get().then(({ settings: current }) => {
-    console.log({ current, partial });
-    setSettings(meshObjects(current, partial));
-  });
+  browser.storage.local
+    .get()
+    .then(
+      (
+        /** @type {{ settings: Partial<Settings> }} */ { settings: current },
+      ) => {
+        console.log({ current, partial });
+        setSettings(meshObjects(current, partial));
+      },
+    );
 
 const resetSettings = async () => setSettings({});
 
