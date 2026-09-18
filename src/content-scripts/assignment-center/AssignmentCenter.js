@@ -224,6 +224,15 @@ export default class AssignmentCenter extends HTMLElement {
     list.id = AssignmentCenter.#idForAssignmentList(date);
     box.appendChild(list);
 
+    const hiddenAssignments = document.createElement("details");
+    hiddenAssignments.classList.add("hidden-assignments");
+    hiddenAssignments.appendChild(document.createElement("summary"));
+    const hiddenAssignmentsList = document.createElement("ul");
+    hiddenAssignmentsList.id =
+      AssignmentCenter.#idForHiddenAssignmentList(date);
+    hiddenAssignments.appendChild(hiddenAssignmentsList);
+    box.appendChild(hiddenAssignments);
+
     return box;
   }
 
@@ -275,9 +284,13 @@ export default class AssignmentCenter extends HTMLElement {
   #hydrateCalendar() {
     for (const assignment of this.assignments) {
       const date = Calendar.resetDate(assignment.dueDate);
-      const list = this.#shadowRoot.getElementById(
-        AssignmentCenter.#idForAssignmentList(date),
-      );
+      const list = assignment.orionHidden
+        ? this.#shadowRoot.getElementById(
+            AssignmentCenter.#idForHiddenAssignmentList(date),
+          )
+        : this.#shadowRoot.getElementById(
+            AssignmentCenter.#idForAssignmentList(date),
+          );
 
       // skip if the date isn't being shown in the calendar
       if (list == null) continue;
@@ -331,6 +344,16 @@ export default class AssignmentCenter extends HTMLElement {
     // this works bc when `nextBox` is null it's the same as `list.append`.
     list.insertBefore(NonNull(newBox.parentElement), nextBox?.parentElement);
     this.#showDay(/** @type {0|1|2|3|4|5|6} */ (assignment.dueDate.getDay()));
+
+    // Handle renumbering the hidden list
+    if (assignment.orionHidden) this.#renumberHiddenAssignmentsList(list);
+  }
+
+  /** @param {HTMLUListElement} */
+  #renumberHiddenAssignmentsList(list) {
+    const count = list.childElementCount;
+    const summary = list.previousElementSibling;
+    if (summary != null) summary.textContent = `Hidden (${count})`;
   }
 
   /**
@@ -388,6 +411,11 @@ export default class AssignmentCenter extends HTMLElement {
     return `assignment-list-${date.getTime()}`;
   }
 
+  /** @param {Date} date */
+  static #idForHiddenAssignmentList(date) {
+    return `hidden-assignment-list-${date.getTime()}`;
+  }
+
   /** @param {Assignment[]} newAssignments */
   #addAssignments(newAssignments) {
     this.assignments = this.assignments.concat(newAssignments);
@@ -441,6 +469,7 @@ export default class AssignmentCenter extends HTMLElement {
       // update internal object
       const index = this.assignments.findIndex((a) => a.id === id);
       if (index === -1) return;
+      const oldDate = this.assignments[index].dueDate;
       this.assignments[index] = /** @type {Assignment} */ (
         applyDiff(this.assignments[index], changes ?? {})
       );
@@ -449,6 +478,19 @@ export default class AssignmentCenter extends HTMLElement {
       if (changes?.status != undefined) {
         if (isTask) await api.updateTaskStatus(this.assignments[index]);
         else await api.updateAssignmentStatus(id, changes.status);
+      }
+
+      // check if extra metadata needs to be updated
+      if (changes?.orionHidden != undefined) {
+        console.log(`Setting hidden status of ${id} to ${changes.orionHidden}`);
+        await browser.runtime.sendMessage({
+          type: "extraAssignmentData.update",
+          data: {
+            assignmentId: id,
+            props: { hidden: changes.orionHidden },
+          },
+        });
+        this.#reparentAssignment(this.assignments[index], oldDate);
       }
 
       // check if task needs to be deleted
@@ -466,6 +508,7 @@ export default class AssignmentCenter extends HTMLElement {
 
         // handle the due date changing (ie w/ tasks)
         if (changes.dueDate != undefined) {
+          // TODO: use this.#reparentAssignment()
           const list = this.#shadowRoot.getElementById(
             AssignmentCenter.#idForAssignmentList(
               Calendar.resetDate(changes.dueDate),
@@ -489,6 +532,38 @@ export default class AssignmentCenter extends HTMLElement {
       assertIsClass(err, Error);
       reportOrionError(err);
     }
+  }
+
+  /** @param {Assignment} assignment @param {Date} oldDate The previous due date of the assignment. */
+  #reparentAssignment(assignment, oldDate) {
+    const oldHiddenList = /** @type {HTMLUListElement|null} */ (
+      this.#shadowRoot.getElementById(
+        AssignmentCenter.#idForHiddenAssignmentList(
+          Calendar.resetDate(oldDate),
+        ),
+      )
+    );
+
+    const date = Calendar.resetDate(assignment.dueDate);
+    const listId = assignment.orionHidden
+      ? AssignmentCenter.#idForHiddenAssignmentList(date)
+      : AssignmentCenter.#idForAssignmentList(date);
+    const list = this.#shadowRoot.getElementById(listId);
+
+    // just remove the old element
+    const oldBox = NonNull(this.#findAssignmentBoxFor(assignment.id));
+    if (oldBox?.parentElement instanceof window.HTMLLIElement)
+      oldBox?.parentElement.remove();
+    else oldBox.remove();
+
+    // reparent, if the day is being shown
+    if (list != null) {
+      assertIsClass(list, window.HTMLUListElement);
+      this.#insertAssignmentBox(list, assignment);
+    }
+
+    // renumber old list
+    if (oldHiddenList) this.#renumberHiddenAssignmentsList(oldHiddenList);
   }
 
   /** @param {number} id @returns {AssignmentBox | undefined} */
@@ -607,6 +682,24 @@ main {
 
       & li {
         margin: 0.5em;
+      }
+    }
+
+    & .hidden-assignments {
+      display: none;
+      &:has(ul > *) {
+        display: block;
+      }
+
+      & summary {
+        font-size: small;
+      }
+
+      margin: 0.5em;
+
+      & ul {
+        padding-inline-start: 0;
+        margin: 0;
       }
     }
 

@@ -2,6 +2,8 @@ import meshObjects from "../util/meshObjects.js";
 
 import meshAssignmentsArray from "./mesh-assignments-array.js";
 
+/** @typedef {(msg: { type: string, data: any }, sender: unknown) => Promise<any> } Listener */
+
 ///================///
 ///=== SETTINGS ===///
 ///================///
@@ -80,7 +82,8 @@ const updateSettings = async (partial) =>
 
 const resetSettings = async () => setSettings({});
 
-const settingsListener = async (msg, sender) => {
+/** @type {Listener} */
+const settingsListener = async (msg, _sender) => {
   switch (msg.type) {
     case "settings.get":
       return getSettings();
@@ -104,7 +107,8 @@ const settingsListener = async (msg, sender) => {
 /** @returns {Promise<Set<string>>} */
 const getViewedVersions = async () =>
   (await browser.storage.local.get()).whatsNewViewed;
-const whatsNewListener = async (msg, sender) => {
+/** @type {Listener} */
+const whatsNewListener = async (msg, _sender) => {
   switch (msg.type) {
     case "whatsNew.setVersionViewed": {
       const viewedVersions = new Set(await getViewedVersions());
@@ -131,7 +135,8 @@ const whatsNewListener = async (msg, sender) => {
 /** @returns {Promise<Set<string>>} */
 const getIgnoredUpdates = async () =>
   (await browser.storage.local.get()).ignoredUpdates;
-const updateRemindersListener = async (msg, sender) => {
+/** @type {Listener} */
+const updateRemindersListener = async (msg, _sender) => {
   switch (msg.type) {
     case "updateReminders.ignoreUpdate": {
       const ignoredUpdates = new Set(await getIgnoredUpdates());
@@ -151,9 +156,41 @@ const updateRemindersListener = async (msg, sender) => {
   }
 };
 
+///=============================///
+///=== EXTRA ASSIGNMENT DATA ===///
+///=============================///
+/** @param {string} assignmentId @returns {Promise<object>} */
+const getExtraAssignmentData = (assignmentId) =>
+  browser.storage.local
+    .get()
+    .then(
+      (/** @type {any} */ data) => data[`extraAssignmentData-${assignmentId}`],
+    );
+/** @param {String} assignmentId @param {object} data @returns {Promise<undefined>} */
+const setExtraAssignmentData = (assignmentId, data) =>
+  browser.storage.local.set({ [`extraAssignmentData-${assignmentId}`]: data });
+/** @type {Listener} */
+const extraAssignmentDataListener = async (msg, _sender) => {
+  switch (msg.type) {
+    case "extraAssignmentData.update": {
+      const { assignmentId, props } = msg.data;
+      const current = await getExtraAssignmentData(assignmentId);
+      const updated = meshObjects(current, props);
+      return await setExtraAssignmentData(assignmentId, updated);
+    }
+    case "extraAssignmentData.get": {
+      const { assignmentId } = msg.data;
+      return await getExtraAssignmentData(assignmentId);
+    }
+    default:
+      console.error(`Unknown message type ${msg.type}`);
+  }
+};
+
 ///=========================///
 ///=== ASSIGNMENTS CACHE ===///
 ///=========================///
+/** @type {Listener} */
 const assignmentsCache = async (msg, _sender) => {
   const get = async () =>
     (await browser.storage.local.get()).assignmentsCache ?? [];
@@ -179,18 +216,23 @@ const assignmentsCache = async (msg, _sender) => {
 ///=================///
 ///=== LISTENERS ===///
 ///=================///
-browser.runtime.onMessage.addListener(async (msg, sender) => {
-  const type = msg.type.split(".")[0];
-  switch (type) {
-    case "settings":
-      return settingsListener(msg, sender);
-    case "whatsNew":
-      return whatsNewListener(msg, sender);
-    case "updateReminders":
-      return updateRemindersListener(msg, sender);
-    case "assignmentsCache":
-      return assignmentsCache(msg, sender);
-    default:
-      console.error(`Unknown message type ${msg.type}`);
-  }
-});
+browser.runtime.onMessage.addListener(
+  /** @type {Listener} */
+  async (msg, sender) => {
+    const type = msg.type.split(".")[0];
+    switch (type) {
+      case "settings":
+        return settingsListener(msg, sender);
+      case "whatsNew":
+        return whatsNewListener(msg, sender);
+      case "updateReminders":
+        return updateRemindersListener(msg, sender);
+      case "extraAssignmentData":
+        return extraAssignmentDataListener(msg, sender);
+      case "assignmentsCache":
+        return assignmentsCache(msg, sender);
+      default:
+        console.error(`Unknown message type ${msg.type}`);
+    }
+  },
+);

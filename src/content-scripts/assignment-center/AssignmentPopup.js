@@ -19,6 +19,8 @@ export default class AssignmentPopup extends HTMLElement {
   #deleteBtn;
   /** @type {HTMLButtonElement} */
   #gradedBtn;
+  /** @type {HTMLButtonElement} */
+  #hideBtn;
 
   /** @type {HTMLElement} */
   #title;
@@ -110,10 +112,18 @@ export default class AssignmentPopup extends HTMLElement {
     this.#attachments.append(attachmentsHeading, this.#attachmentsList);
     root.appendChild(this.#attachments);
 
+    // bottom bar
+    const bottomBar = document.createElement("div");
+    bottomBar.id = "bottom-bar";
     // class name
     this.#class = document.createElement("p");
     this.#class.id = "class-name";
-    root.appendChild(this.#class);
+    bottomBar.appendChild(this.#class);
+    this.#hideBtn = document.createElement("button");
+    this.#hideBtn.id = "hide-btn";
+    this.#hideBtn.addEventListener("click", this.#handleHide.bind(this));
+    bottomBar.appendChild(this.#hideBtn);
+    root.appendChild(bottomBar);
 
     shadow.appendChild(root);
   }
@@ -163,6 +173,10 @@ export default class AssignmentPopup extends HTMLElement {
     const max = this.assignment.grade.max?.toString() ?? "unknown";
 
     this.#gradedBtn.textContent = `Graded (${value} / ${max})`;
+  }
+
+  #hydrateHideBtn() {
+    this.#hideBtn.textContent = this.assignment.orionHidden ? "Unhide" : "Hide";
   }
 
   #hydrateTitle() {
@@ -222,6 +236,7 @@ export default class AssignmentPopup extends HTMLElement {
     this.#hydrateSubmitBtn();
     this.#hydrateDeleteBtn();
     this.#hydrateGradedBtn();
+    this.#hydrateHideBtn();
     this.#hydrateTitle();
     this.#hydrateDescription();
     this.#hydrateAttachments();
@@ -266,6 +281,11 @@ export default class AssignmentPopup extends HTMLElement {
         "Sorry, you're gonna have to do it. (You can't delete an assignment.)\n\nThis is a bug. If this is shown, please report it.",
       );
     }
+  }
+
+  /** @param {Event} _e */
+  #handleHide(_e) {
+    this.#setAssignment({ orionHidden: !this.assignment.orionHidden });
   }
 
   #getDesc() {
@@ -351,6 +371,11 @@ export default class AssignmentPopup extends HTMLElement {
     }
   }
 
+  & #bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+  }
   & #class-name {
     font-size: small;
     opacity: 0.75;

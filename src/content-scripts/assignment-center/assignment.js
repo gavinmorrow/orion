@@ -44,6 +44,7 @@ import { scrapeClassColors } from "./scrape-colors.js";
  * @property {object} grade
  * @property {number?} grade.value
  * @property {number?} grade.max
+ * @property {boolean?} orionHidden A custom property stored locally as to whether an assignment should be hidden or not.
  */
 
 /**

@@ -263,14 +263,30 @@ const api = {
         assignments.PastThisWeek,
         assignments.PastLastWeek,
         assignments.PastBeforeLastWeek,
-      ).map((assignment) => {
-        console.debug("Parsing assignment...");
-        if (assignment.UserTaskId !== 0) {
-          return Task.addColor(Task.parse(assignment));
-        } else {
-          return AssignmentUtil.addColor(AssignmentUtil.parse(assignment));
-        }
-      }),
+      )
+        .map((assignment) => {
+          console.debug("Parsing assignment...");
+          if (assignment.UserTaskId !== 0) {
+            return Task.addColor(Task.parse(assignment));
+          } else {
+            return AssignmentUtil.addColor(AssignmentUtil.parse(assignment));
+          }
+        })
+        .map((assignment) =>
+          assignment.then((assignment) =>
+            browser.runtime
+              .sendMessage({
+                type: "extraAssignmentData.get",
+                data: { assignmentId: assignment.id },
+              })
+              .then(
+                /** @param {any} */ (extra) => {
+                  assignment.orionHidden = extra?.hidden;
+                  return assignment;
+                },
+              ),
+          ),
+        ),
     ).then((assignments) => (setAssignmentsCache(assignments), assignments)),
 
   getClasses: memo(
