@@ -149,16 +149,19 @@ const assignmentsCache = async (msg, _sender) => {
   const get = async () =>
     (await browser.storage.local.get()).assignmentsCache ?? [];
   switch (msg.type) {
-    case `assignmentsCache.set`:
+    case `assignmentsCache.set`: {
       const curr = await get();
       const newValue = meshAssignmentsArray(curr, msg.data);
       await browser.storage.local.set({ assignmentsCache: newValue });
       break;
-    case `assignmentsCache.get`:
+    }
+    case `assignmentsCache.get`: {
       return get();
-    case `assignmentsCache.clear`:
+    }
+    case `assignmentsCache.clear`: {
       await browser.storage.local.set({ assignmentsCache: [] });
       break;
+    }
     default:
       console.error(`Unknown message type ${msg.type}`);
   }
