@@ -364,6 +364,19 @@ export default class AssignmentCenter extends HTMLElement {
    */
   #createAssignmentBox(assignment) {
     const box = new AssignmentBox(assignment, this.settings);
+    box.addEventListener("mouseenter", (_event) => {
+      const root = this.#shadowRoot.querySelector("main");
+      if (!root) return;
+
+      const bottom = box.popup.getBoundingClientRect().bottom;
+      const rootBottom = root.getBoundingClientRect().bottom;
+      console.log({ bottom, rootBottom });
+      if (bottom > rootBottom) root.style.height = `calc(${bottom}px + 10lh)`;
+    });
+    box.addEventListener("mouseleave", (_event) => {
+      const root = this.#shadowRoot.querySelector("main");
+      if (root) root.style.height = "";
+    });
     document.createElement("li").appendChild(box);
     return box;
   }
@@ -610,6 +623,7 @@ main {
   background-color: var(--color-bg-root);
 
   padding: 1em;
+  padding-bottom: 10lh;
 
   /* Prevent light-colored background from appearing underneath the calendar */
   min-height: 100vh;

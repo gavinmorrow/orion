@@ -18,7 +18,7 @@ export default class AssignmentBox extends HTMLElement {
   #settings;
 
   /** @type {AssignmentPopup} */
-  #popup;
+  popup;
 
   /** Doesn't exist when not a task. @type {TaskEditor?} */
   #taskEditor = null;
@@ -43,7 +43,7 @@ export default class AssignmentBox extends HTMLElement {
     super();
     this.assignment = assignment;
     this.#settings = settings;
-    this.#popup = new AssignmentPopup(this.assignment);
+    this.popup = new AssignmentPopup(this.assignment);
     this.updateAssignment = this.#updateAssignment.bind(this);
 
     // create DOM
@@ -88,7 +88,7 @@ export default class AssignmentBox extends HTMLElement {
     this.#wrapper.appendChild(root);
 
     // add popup
-    this.#wrapper.appendChild(this.#popup);
+    this.#wrapper.appendChild(this.popup);
 
     shadow.appendChild(this.#wrapper);
   }
@@ -103,7 +103,7 @@ export default class AssignmentBox extends HTMLElement {
     this.#taskEditor?.updateAssignment(assignment);
     this.#hydrateStyles();
     this.#hydrateTitleElem();
-    this.#popup.updateAssignment(assignment);
+    this.popup.updateAssignment(assignment);
   }
 
   #hydrateStyles() {
