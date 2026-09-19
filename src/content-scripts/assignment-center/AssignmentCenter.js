@@ -343,7 +343,8 @@ export default class AssignmentCenter extends HTMLElement {
     const nextBox = idealBoxes[index + 1];
     // this works bc when `nextBox` is null it's the same as `list.append`.
     list.insertBefore(NonNull(newBox.parentElement), nextBox?.parentElement);
-    this.#showDay(/** @type {0|1|2|3|4|5|6} */ (assignment.dueDate.getDay()));
+    if (!assignment.orionHidden)
+      this.#showDay(/** @type {0|1|2|3|4|5|6} */ (assignment.dueDate.getDay()));
 
     // Handle renumbering the hidden list
     if (assignment.orionHidden) this.#renumberHiddenAssignmentsList(list);
