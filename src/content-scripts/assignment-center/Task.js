@@ -25,7 +25,7 @@ const Task = {
           )
             .filter((/** @type {BlackbaudTask} */ a) => a.UserTaskId != 0)
             .map(Task.parse)
-            .map(Task.addColor),
+            .map(Task.addAsyncData),
         ),
       (err) => {
         reportOrionError(err);
@@ -76,9 +76,10 @@ const Task = {
     };
   },
 
-  /** @param {Assignment} t */
-  async addColor(t) {
-    return AssignmentUtil.addColor(t);
+  /** @param {Assignment} a */
+  async addAsyncData(a) {
+    console.debug("Adding async data...");
+    return AssignmentUtil.addAsyncData(a).then(AssignmentUtil.addHiddenState);
   },
 };
 

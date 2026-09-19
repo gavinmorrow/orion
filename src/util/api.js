@@ -267,9 +267,9 @@ const api = {
         .map((assignment) => {
           console.debug("Parsing assignment...");
           if (assignment.UserTaskId !== 0) {
-            return Task.addColor(Task.parse(assignment));
+            return Task.addAsyncData(Task.parse(assignment));
           } else {
-            return AssignmentUtil.addColor(AssignmentUtil.parse(assignment));
+            return AssignmentUtil.addAsyncData(AssignmentUtil.parse(assignment));
           }
         })
         .map((assignment) =>
@@ -281,7 +281,7 @@ const api = {
               })
               .then(
                 /** @param {any} */ (extra) => {
-                  assignment.orionHidden = extra?.hidden;
+                  assignment.orionHidden = extra?.hidden ?? false;
                   return assignment;
                 },
               ),

@@ -447,7 +447,7 @@ export default class AssignmentCenter extends HTMLElement {
         // TODO: figure out whether the id is a number or string
         (a) => a.id == task.UserTaskId,
       );
-      const parsedTask = await Task.addColor(Task.parse(task));
+      const parsedTask = await Task.addAsyncData(Task.parse(task));
       const diff = findDiff(NonNull(storedTask), parsedTask);
 
       // update stored task
@@ -470,9 +470,18 @@ export default class AssignmentCenter extends HTMLElement {
       const index = this.assignments.findIndex((a) => a.id === id);
       if (index === -1) return;
       const oldDate = this.assignments[index].dueDate;
+      console.log({
+        hidden: this.assignments[index].orionHidden,
+        changes,
+        assignmentBefore: this.assignments[index],
+      });
       this.assignments[index] = /** @type {Assignment} */ (
         applyDiff(this.assignments[index], changes ?? {})
       );
+      console.log({
+        hidden: this.assignments[index].orionHidden,
+        assignmentAfter: this.assignments[index],
+      });
 
       // check for if the status in the backend needs to be updated
       if (changes?.status != undefined) {
@@ -506,23 +515,10 @@ export default class AssignmentCenter extends HTMLElement {
         // otherwise, update the element corresponding to it
         changes = NonNull(changes, "assignments cannot be deleted");
 
+        // FIXME: for some reason assignment.orionHidden is undefined here???
         // handle the due date changing (ie w/ tasks)
-        if (changes.dueDate != undefined) {
-          // TODO: use this.#reparentAssignment()
-          const list = this.#shadowRoot.getElementById(
-            AssignmentCenter.#idForAssignmentList(
-              Calendar.resetDate(changes.dueDate),
-            ),
-          );
-
-          // just remove the old element
-          NonNull(this.#findAssignmentBoxFor(id)).remove();
-          // reparent, if the day is being shown
-          if (list != null) {
-            assertIsClass(list, window.HTMLUListElement);
-            this.#insertAssignmentBox(list, this.assignments[index]);
-          }
-        }
+        if (changes.dueDate != undefined)
+          this.#reparentAssignment(this.assignments[index], oldDate);
 
         // update the element
         const assignmentBox = NonNull(this.#findAssignmentBoxFor(id));
@@ -545,6 +541,7 @@ export default class AssignmentCenter extends HTMLElement {
     );
 
     const date = Calendar.resetDate(assignment.dueDate);
+    console.log({ hidden: assignment.orionHidden, assignment });
     const listId = assignment.orionHidden
       ? AssignmentCenter.#idForHiddenAssignmentList(date)
       : AssignmentCenter.#idForAssignmentList(date);

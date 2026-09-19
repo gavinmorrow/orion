@@ -158,6 +158,24 @@ const Assignment = {
     }
   },
 
+  /** @param {Assignment} a */
+  async addAsyncData(a) {
+    console.debug("Adding async data...");
+    return Assignment.addColor(a).then(Assignment.addHiddenState);
+  },
+
+  /** @param {Assignment} a */
+  async addHiddenState(a) {
+    console.debug("Adding hidden state...");
+
+    const extra = await browser.runtime.sendMessage({
+      type: "extraAssignmentData.get",
+      data: { assignmentId: a.id },
+    });
+    a.orionHidden = extra?.hidden ?? false;
+    return a;
+  },
+
   /**
    * Sort two assignments by status (ascending) and then by type (descending).
    * @param {Assignment} a
