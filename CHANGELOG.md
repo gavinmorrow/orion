@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.1
+
+_released 00 September 2026_
+
+- Features:
+  - You can now hide assignments! Yay. They'll still be viewable, you'll just
+    need an extra click to show.
+
 ## v0.9.0
 
 _released 13 September 2026_
