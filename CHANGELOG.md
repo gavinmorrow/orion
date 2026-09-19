@@ -2,11 +2,14 @@
 
 ## v0.9.1
 
-_released 00 September 2026_
+_released 19 September 2026_
 
 - Features:
   - You can now hide assignments! Yay. They'll still be viewable, you'll just
     need an extra click to show.
+- Bug Fixes:
+  - Assignment popups now have a margin underneath them when extending beyond
+    the bottom of the page.
 
 ## v0.9.0
 
