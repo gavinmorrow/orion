@@ -1,4 +1,4 @@
-export const VERSION = "0.9.1";
+export const VERSION = "0.9.2";
 
 // Check for old version already installed.
 let meta = document.getElementById("orion-version");
