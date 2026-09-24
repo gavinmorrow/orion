@@ -149,7 +149,10 @@ const api = {
             AssignedDate: BlackbaudDate.from(task.assignedDate),
             DueDate: BlackbaudDate.from(task.dueDate),
             SectionId: task.class.id,
-            ShortDescription: task.title,
+            ShortDescription:
+              task.description && task.description.length > 0
+                ? `${task.title} ~~ ${task.description}`
+                : task.title,
             TaskStatus: statusNum,
             UserId: await getStudentUserId(),
             UserTaskId: task.id,
@@ -269,7 +272,9 @@ const api = {
           if (assignment.UserTaskId !== 0) {
             return Task.addAsyncData(Task.parse(assignment));
           } else {
-            return AssignmentUtil.addAsyncData(AssignmentUtil.parse(assignment));
+            return AssignmentUtil.addAsyncData(
+              AssignmentUtil.parse(assignment),
+            );
           }
         })
         .map((assignment) =>

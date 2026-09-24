@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.2
+
+_released 24 September 2026_
+
+- Bug Fixes:
+  - Task descriptions no longer clear when changing the task's status.
+
 ## v0.9.1
 
 _released 19 September 2026_
